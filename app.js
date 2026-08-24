@@ -12,6 +12,8 @@
     model: null,       // 存在多个候选型号时的明确选择
     wireMethod: null,  // 'QD' | 'nonQD'
     accessory: null,
+    cable: null,       // 直接出线的米数：'01'|'02'|'03'|'05'|'07'
+    metal: null,       // QD 接头材质：'metal' | 'normal'
   };
 
   /* ---------- DOM 引用 ---------- */
@@ -52,13 +54,41 @@
     return state.group[state.generation][variantKey()] || null;
   };
 
+  /* 根据当前 系列×缸径 计算可选安装附件（含选配/必选标记） */
+  const accessoryOptions = () => {
+    const g = state.group;
+    if (!g || !(g.accessories && g.accessories.length) || state.bore == null) {
+      return { options: ["无（仅开关）"], required: false, hasAccessory: false };
+    }
+    const matched = g.accessories.filter(
+      (r) => state.bore >= r.range[0] && state.bore <= r.range[1]
+    );
+    if (!matched.length) return { options: ["无（仅开关）"], required: false, hasAccessory: false };
+    const required = matched.some((r) => r.required);
+    const models = Array.from(new Set(
+      matched.map((r) => (state.generation === "old" ? r.old : r.new))
+    )).filter(Boolean);
+    const options = required ? models : ["无（仅开关）", ...models];
+    return { options, required, hasAccessory: true };
+  };
+
   /* 每个选项统一携带 .value；下拉步骤额外携带 .description */
+  /* 气缸系列 → 气缸类型描述 */
+  const SERIES_DESC = {
+    TCM: "三轴气缸", TCL: "三轴气缸", QCK: "回转夹紧气缸",
+    MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧到销钉气缸",
+    HLQ: "双轴滑气缸", HLS: "双轴滑气缸",
+    JSI: "标准气缸", SAI: "标准气缸", "BE/BSE": "标准气缸",
+    SC: "拉杆气缸", BSC: "拉杆气缸", SCJ: "拉杆气缸",
+    BP: "笔型气缸", TN: "双轴气缸", TR: "双轴气缸",
+  };
+
   const stepOptions = (key) => {
     switch (key) {
       case "series":
         return GROUPS.reduce((acc, g) => {
           g.series.forEach((snm) => acc.push({
-            value: snm, sub: `${g.boreMin}-${g.boreMax}`, group: g,
+            value: snm, sub: SERIES_DESC[snm] || "标准气缸", group: g,
           }));
           return acc;
         }, []);
@@ -85,13 +115,32 @@
         return cands.map((m) => ({ value: m, sub: "开关型号" }));
       }
       case "wireMethod":
+        return state.wiring === "three"
+          ? [
+              { value: "M12QD", label: "M12QD", sub: "带QD头" },
+              { value: "direct", label: "直接出线", sub: "不带QD头" },
+            ]
+          : [
+              { value: "M12QD-SE", label: "M12QD(SE)", sub: "带QD头" },
+              { value: "M12QD-SC", label: "M12QD(SC)", sub: "带QD头" },
+              { value: "direct", label: "直接出线", sub: "不带QD头" },
+            ];
+      case "metal":
         return [
-          { value: "M12QD-SE", label: "M12QD-SE", sub: "带QD头" },
-          { value: "M12QD-SC", label: "M12QD-SC", sub: "带QD头" },
-          { value: "direct", label: "直接出线", sub: "不带QD头" },
+          { value: "metal", label: "金属", sub: "型号带 J" },
+          { value: "normal", label: "普通", sub: "型号不带 J" },
         ];
-      case "accessory":
-        return OPTIONS.accessories.map((a, i) => ({ value: a, sub: i === 0 ? "默认" : "选配" }));
+      case "cable":
+        return ["01", "02", "03", "05", "07"].map((m) => ({
+          value: m, label: m + "m", sub: "线缆长度",
+        }));
+      case "accessory": {
+        const acc = accessoryOptions();
+        return acc.options.map((a) => ({
+          value: a,
+          sub: a === "无（仅开关）" ? "默认" : "安装附件",
+        }));
+      }
       default:
         return [];
     }
@@ -102,7 +151,8 @@
       case "generation": return val === "old" ? "老款" : "新款";
       case "wiring":     return val === "two" ? "两线式" : "三线式";
       case "signal":     return val === "auto" ? "自动识别" : val.toUpperCase();
-      case "wireMethod": return val === "direct" ? "直接出线" : val;
+      case "wireMethod": return val === "direct" ? "直接出线"
+        : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
       default:           return val;
     }
   };
@@ -116,7 +166,9 @@
       signal:     ["05", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
       model:      ["06", "选择开关型号", "请确认所需的实际开关型号。"],
       wireMethod: ["07", "选择出线方式", "请选择出线方式：M12QD 系列接头或直接出线。"],
-      accessory:  ["08", "选择附件", "可选配安装附件"],
+      cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
+      metal:      ["08", "选择接头材质", "QD 接头请选择金属或普通材质。"],
+      accessory:  ["09", "选择附件", "可选配安装附件"],
     };
     return meta[key] || ["--", key, ""];
   };
@@ -128,7 +180,19 @@
     const cands = candidateModels();
     if (cands && cands.length) steps.push("model");
     steps.push("wireMethod");
-    steps.push("accessory");
+    if (state.wireMethod === "direct") steps.push("cable");
+    else if (state.wireMethod) steps.push("metal");
+
+    /* 附件步骤：仅当存在实际附件（选配或必选）才需用户选择；
+       没有其他型号时默认"无"并跳过该步骤 */
+    const accOpts = accessoryOptions().options;
+    const onlyNone = accOpts.length === 1 && accOpts[0] === "无（仅开关）";
+    if (!onlyNone) {
+      state.accessory = null;   // 存在可选附件时强制点选
+      steps.push("accessory");
+    } else if (state.accessory === null) {
+      state.accessory = "无（仅开关）";  // 无其他型号时默认无
+    }
     return steps;
   };
 
@@ -153,6 +217,7 @@
     if (key === "generation") state.model = null;
     if (key === "wiring") { state.signal = null; state.model = null; }
     if (key === "signal") state.model = null;
+    if (key === "wireMethod") { state.cable = null; state.metal = null; }
   };
 
   /* ---------- 渲染 ---------- */
@@ -183,7 +248,7 @@
     if (state.model) push("型号", state.model);
     else if (cands && cands.length === 1) push("型号", cands[0]);
 
-    push("出线", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : null);
+    push("出线", wireDisplay());
     push("附件", state.accessory);
 
     pickedBar.innerHTML = chips.join("");
@@ -203,7 +268,11 @@
 
     stepBadge.textContent = badge;
     stepTitle.textContent = title;
-    stepDesc.textContent = stepMeta(key)[2];
+    if (key === "accessory" && accessoryOptions().required) {
+      stepDesc.textContent = "该系列需配套安装附件，请选择相应型号。";
+    } else {
+      stepDesc.textContent = stepMeta(key)[2];
+    }
 
     optionsArea.innerHTML = "";
     options.forEach((opt) => {
@@ -266,14 +335,55 @@
   }
 
   /* ---------- 结果 ---------- */
+  /* 出线方式（含材质/线长）的显示文本 */
+  const wireDisplay = () => {
+    if (!state.wireMethod) return null;
+    if (state.wireMethod === "direct") return state.cable ? `直接出线 ${state.cable}m` : "直接出线";
+    const qd = labelOf("wireMethod", state.wireMethod);
+    return state.metal === "metal" ? `${qd} 金属 / 0.5m` : `${qd} 普通 / 0.5m`;
+  };
+
+  /* 客户型号查找：老款/新款 → 客户型号，带几个常见写法变体兜底 */
+  const normModel = (s) => (s || "").replace(/\s+/g, "").replace(/\/+$/, "");
+  const modelVariants = (s) => {
+    const list = [s];
+    [["-0.5M(", "-0.5("], ["-0.3M(", "-0.3("], ["-0.5M)", "-0.5)"]].forEach(([a, b]) => {
+      if (s.includes(a)) list.push(s.replace(a, b));
+    });
+    return list;
+  };
+  const lookupCustomer = (models, gen) => {
+    const map = (typeof CUSTOMER_MAP !== "undefined" && CUSTOMER_MAP[gen]) || {};
+    for (const m of models || []) {
+      for (const v of modelVariants(normModel(m))) {
+        if (map[v]) return map[v];
+      }
+    }
+    return null;
+  };
+
   function buildResult() {
     const cands = candidateModels();
     const base = state.model || (cands && cands.length ? cands[0] : null);
-    const suffix = state.wireMethod === "direct" ? "" : `-${labelOf("wireMethod", state.wireMethod)}`;
-    const full = base ? `${base}${suffix}` : "—";
+    /* 出线相关段放到型号最末尾：QD {0.5M + QD标识 + 金属J} / 直接出线 {所选米数} */
+    let tail = "";
+    if (state.wireMethod === "direct") {
+      tail = state.cable ? `-${state.cable}M` : "";
+    } else if (state.wireMethod) {
+      /* QD 出线段：M12QD + 0.5M + (金属J) + (SE)/(SC) 恒在末尾；三线式无括号 */
+      let tb = "-M12QD-0.5M";
+      if (state.metal === "metal") tb += "-J";
+      if (state.wiring !== "three") tb += state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)";
+      tail = tb;
+    }
+    const acc = state.accessory;
+    const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
+    const full = base ? `${base}${accSuffix}${tail}` : "—";
     return {
       switchModel: base,
       configuredCode: full,
+      /* 去掉附件段的开关型号，便于对照客户型号字典 */
+      switchCode: base ? `${base}${tail}` : null,
     };
   }
 
@@ -282,6 +392,8 @@
     resultPanel.hidden = false;
     modelOutput.textContent = r.configuredCode;
     track("选型", "完成", r.configuredCode);
+    const customer = lookupCustomer([r.configuredCode, r.switchCode], state.generation)
+      || "无对应客户型号";
 
     const rows = [
       ["气缸系列", state.seriesName || "—"],
@@ -290,8 +402,9 @@
       ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : "—"],
       ["信号类型", state.signal ? labelOf("signal", state.signal) : "—"],
       ["开关型号", r.switchModel || "—"],
-      ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : "—"],
-      ["附件", state.accessory || "—"],
+      ["出线方式", wireDisplay() || "—"],
+      ["附件", state.accessory || "无（仅开关）"],
+      ["客户型号", customer],
     ];
     resultGrid.innerHTML = rows
       .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`)
@@ -301,6 +414,8 @@
 
   const copyText = () => {
     const r = buildResult();
+    const customer = lookupCustomer([r.configuredCode, r.switchCode], state.generation)
+      || "无对应客户型号";
     const rows = [
       ["气缸系列", state.seriesName],
       ["缸径", state.bore != null ? `${state.bore}mm` : null],
@@ -308,8 +423,9 @@
       ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : null],
       ["信号类型", state.signal ? labelOf("signal", state.signal) : null],
       ["开关型号", r.switchModel],
-      ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : null],
-      ["附件", state.accessory],
+      ["出线方式", wireDisplay()],
+      ["附件", state.accessory || "无（仅开关）"],
+      ["客户型号", customer],
       ["完整型号", r.configuredCode],
     ];
     const line = (a, b) => `${a}：${b}`;
