@@ -259,9 +259,8 @@
   function buildResult() {
     const cands = candidateModels();
     const base = state.model || (cands && cands.length ? cands[0] : null);
-    const full = base
-      ? `${base}-${labelOf("wireMethod", state.wireMethod)}`
-      : "—";
+    const suffix = state.wireMethod === "direct" ? "" : `-${labelOf("wireMethod", state.wireMethod)}`;
+    const full = base ? `${base}${suffix}` : "—";
     return {
       switchModel: base,
       configuredCode: full,
