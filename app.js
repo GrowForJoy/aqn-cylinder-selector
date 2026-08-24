@@ -461,25 +461,31 @@
   function buildResult() {
     const cands = candidateModels();
     const base = state.model || (cands && cands.length ? cands[0] : null);
-    /* 出线相关段放到型号最末尾：QD {0.5M + QD标识 + 金属J} / 直接出线 {所选米数} */
-    let tail = "";
-    if (state.wireMethod === "direct") {
-      tail = state.cable ? `-${state.cable}M` : "";
-    } else if (state.wireMethod) {
-      /* QD 出线段：M12QD + 0.5M + (金属J) + (SE)/(SC) 恒在末尾；三线式无括号 */
-      let tb = "-M12QD-0.5M";
-      if (state.metal === "metal") tb += "-J";
-      if (state.wiring !== "three") tb += state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)";
-      tail = tb;
-    }
+    /* 出线相关段 + 附件统一放型号末尾，附件在最末 */
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
-    const full = base ? `${base}${accSuffix}${tail}` : "—";
+    let full, switchTail;
+    if (state.wireMethod === "direct") {
+      const t = state.cable ? `-${state.cable}M` : "";
+      full = base ? `${base}${t}${accSuffix}` : "—";
+      switchTail = t;
+    } else if (state.wireMethod) {
+      const br = state.wiring !== "three"
+        ? (state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)") : "";
+      let qd = "-M12QD-0.5M";
+      if (state.metal === "metal") qd += "-J";
+      /* QD 段 = M12QD-0.5M(+J) + (SE)/(SC)；附件统一放最末尾 */
+      full = base ? `${base}${qd}${br}${accSuffix}` : "—";
+      switchTail = `${qd}${br}`;
+    } else {
+      full = base || "—";
+      switchTail = "";
+    }
     return {
       switchModel: base,
       configuredCode: full,
       /* 去掉附件段的开关型号，便于对照客户型号字典 */
-      switchCode: base ? `${base}${tail}` : null,
+      switchCode: base ? `${base}${switchTail}` : null,
     };
   }
 
