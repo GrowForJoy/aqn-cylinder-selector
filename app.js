@@ -299,10 +299,10 @@
       ["开关型号", r.switchModel],
       ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : null],
       ["附件", state.accessory],
-      ["完整编号", r.configuredCode],
+      ["完整型号", r.configuredCode],
     ];
     const line = (a, b) => `${a}：${b}`;
-    return "【气缸开关型号选型结果】\n" + rows.filter(([, b]) => b !== null && b !== "" ).map(([a, b]) => line(a, b)).join("\n");
+    return "【抗强磁开关型号选型结果】\n" + rows.filter(([, b]) => b !== null && b !== "" ).map(([a, b]) => line(a, b)).join("\n");
   };
 
   /* 系列搜索框过滤 */
