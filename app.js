@@ -1,7 +1,3 @@
-/* ============================================================
- * 气缸选型 —— 交互逻辑
- * 流程：系列 → 缸径 → 老/新款 → 接线(两/三线) → [信号] → [开关型号] → 出线 → [线长] → 附件 → 结果
- * ============================================================ */
 (() => {
   "use strict";
 
@@ -15,7 +11,6 @@
     signal: null,      // 'auto' | 'npn' | 'pnp'（三线式时）
     model: null,       // 存在多个候选型号时的明确选择
     wireMethod: null,  // 'QD' | 'nonQD'
-    wireLength: null,  // 米数（不带QD时）
     accessory: null,
   };
 
@@ -27,8 +22,9 @@
   const stepTitle = $("#stepTitle");
   const stepDesc = $("#stepDesc");
   const optionsArea = $("#optionsArea");
+  const seriesSearch = $("#seriesSearch");
+  const seriesSearchInput = $("#seriesSearchInput");
   const btnBack = $("#btnBack");
-  const btnNext = $("#btnNext");
   const resultPanel = $("#resultPanel");
   const modelOutput = $("#modelOutput");
   const resultGrid = $("#resultGrid");
@@ -81,11 +77,9 @@
       }
       case "wireMethod":
         return [
-          { value: "QD", label: "带QD头", sub: "QD", flag: "连接器" },
-          { value: "nonQD", label: "不带QD", sub: "出线", flag: "锁线" },
+          { value: "QD", label: "带QD头", sub: "QD", flag: "" },
+          { value: "nonQD", label: "不带QD", sub: "出线", flag: "" },
         ];
-      case "wireLength":
-        return OPTIONS.wireLength.map((w) => ({ value: w, sub: "线缆" }));
       case "accessory":
         return OPTIONS.accessories.map((a, i) => ({ value: a, sub: i === 0 ? "默认" : "选配" }));
       default:
@@ -108,12 +102,11 @@
       series:     ["01", "选择气缸系列", "请选择需要的气缸系列，不同系列对应不同的缸径范围与开关型号。"],
       bore:       ["02", "选择缸径", `当前缸径范围为 ${state.group ? state.group.boreMin : "-"} ~ ${state.group ? state.group.boreMax : "-"} mm，请选择实际需要的内径规格。`],
       generation: ["03", "选择老款 / 新款", "老款对应 AN-1xx 系列开关，新款对应 AN-A6x 系列开关。"],
-      wiring:     ["04", "选择接线方式", "两线式为通断信号，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
-      signal:     ["05", "选择信号类型", "三线式输出需确认晶体管类型，自动识别 S 型兼容 NPN 与 PNP。"],
+      wiring:     ["04", "选择接线方式", "接线方式分为两线式和三线式，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
+      signal:     ["05", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
       model:      ["06", "选择开关型号", "当前参数存在多个候选开关型号，请确认所需的实际型号。"],
-      wireMethod: ["07", "选择出线方式", "带 QD 头为航空连接器快速插拔，不带 QD 为直接引出线缆。"],
-      wireLength: ["08", "选择线长", "不带 QD 头时，请选择所需出线长度。"],
-      accessory:  ["09", "选择附件", "可选配安装支架、固定螺丝或整套附件。"],
+      wireMethod: ["07", "选择出线方式", "请选择带 QD 头还是不带 QD 头"],
+      accessory:  ["08", "选择附件", "可选配安装附件"],
     };
     return meta[key] || ["--", key, ""];
   };
@@ -125,7 +118,6 @@
     const cands = candidateModels();
     if (cands && cands.length > 1) steps.push("model");
     steps.push("wireMethod");
-    if (state.wireMethod === "nonQD") steps.push("wireLength");
     steps.push("accessory");
     return steps;
   };
@@ -138,21 +130,19 @@
       state.seriesName = val.value;
       state.bore = null; state.generation = null; state.wiring = null;
       state.signal = null; state.model = null; state.wireMethod = null;
-      state.wireLength = null; state.accessory = null;
+      state.accessory = null;
       return;
     }
     if (val === null) {
       state[key] = null;
       if (key === "wiring") { state.signal = null; state.model = null; }
       if (key === "signal" || key === "generation") state.model = null;
-      if (key === "wireMethod") state.wireLength = null;
       return;
     }
     state[key] = val;
     if (key === "generation") state.model = null;
     if (key === "wiring") { state.signal = null; state.model = null; }
     if (key === "signal") state.model = null;
-    if (key === "wireMethod") state.wireLength = null;
   };
 
   /* ---------- 渲染 ---------- */
@@ -184,7 +174,6 @@
     else if (cands && cands.length === 1) push("型号", cands[0]);
 
     push("出线", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : null);
-    push("线长", state.wireLength);
     push("附件", state.accessory);
 
     pickedBar.innerHTML = chips.join("");
@@ -197,6 +186,10 @@
     const [badge, title] = stepMeta(key);
     const options = stepOptions(key);
     const filled = isFilled(key);
+
+    // 仅在“选择气缸系列”步骤显示系列搜索框
+    seriesSearch.classList.toggle("hidden", key !== "series");
+    if (key !== "series") seriesSearchInput.value = "";
 
     stepBadge.textContent = badge;
     stepTitle.textContent = title;
@@ -227,9 +220,6 @@
     });
 
     const isLast = idx === steps.length - 1;
-    btnNext.textContent = isLast ? "生成选型结果 →" : "下一步 →";
-    btnNext.classList.toggle("btn--final", isLast);
-    btnNext.disabled = !filled;
     btnBack.classList.toggle("hidden", idx === 0);
 
     if (isLast && filled) showResult();
@@ -247,21 +237,33 @@
     setValue(key, key === "series" ? { ...opt } : opt.value);
     const steps = buildSteps();
     const idx = steps.indexOf(key);
-    renderProgress(key);
+    const isLast = idx === steps.length - 1;
+
     renderPicked();
-    renderStep(idx);
-    btnNext.disabled = !isFilled(key);
+    if (isLast) {
+      // 最后一步：选完即出结果
+      renderProgress(key);
+      renderStep(idx);
+      showResult();
+    } else {
+      // 点选即自动前进到下一步
+      cursor = idx + 1;
+      renderProgress(steps[cursor]);
+      renderStep(cursor);
+      resultPanel.hidden = true;
+    }
   }
 
   /* ---------- 结果 ---------- */
   function buildResult() {
     const cands = candidateModels();
     const base = state.model || (cands && cands.length ? cands[0] : null);
-    const line = (state.wireLength || "2米").replace("米", "");
-    const suffix = state.wireMethod === "QD" ? "-QD" : `-${line}M`;
+    const full = base
+      ? `${state.seriesName} ${state.bore != null ? state.bore : ""} ${base} ${labelOf("wireMethod", state.wireMethod)}`
+      : "—";
     return {
       switchModel: base,
-      configuredCode: base ? base + suffix : "—",
+      configuredCode: full,
     };
   }
 
@@ -277,8 +279,7 @@
       ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : "—"],
       ["信号类型", state.signal ? labelOf("signal", state.signal) : "—"],
       ["开关型号", r.switchModel || "—"],
-      ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) + "（" + (state.wireMethod === "QD" ? "航空插头" : "直接出线") + "）" : "—"],
-      ["线长", state.wireMethod === "QD" ? "—" : (state.wireLength || "—")],
+      ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : "—"],
       ["附件", state.accessory || "—"],
     ];
     resultGrid.innerHTML = rows
@@ -296,14 +297,23 @@
       ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : null],
       ["信号类型", state.signal ? labelOf("signal", state.signal) : null],
       ["开关型号", r.switchModel],
-      ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) + (state.wireMethod === "QD" ? "（航空插头）" : "（直接出线）") : null],
-      ["线长", state.wireMethod === "QD" ? null : (state.wireLength || null)],
+      ["出线方式", state.wireMethod ? labelOf("wireMethod", state.wireMethod) : null],
       ["附件", state.accessory],
       ["完整编号", r.configuredCode],
     ];
     const line = (a, b) => `${a}：${b}`;
     return "【气缸开关型号选型结果】\n" + rows.filter(([, b]) => b !== null && b !== "" ).map(([a, b]) => line(a, b)).join("\n");
   };
+
+  /* 系列搜索框过滤 */
+  const filterSeries = () => {
+    const kw = seriesSearchInput.value.trim().toLowerCase();
+    optionsArea.querySelectorAll(".option").forEach((el) => {
+      el.style.display = !kw || el.textContent.toLowerCase().includes(kw) ? "" : "none";
+    });
+  };
+  seriesSearchInput.addEventListener("input", filterSeries);
+  seriesSearchInput.addEventListener("search", filterSeries);
 
   btnCopy.addEventListener("click", async () => {
     const text = copyText();
@@ -330,20 +340,8 @@
     renderStep(0);
   });
 
-  /* ---------- 前进 / 后退 ---------- */
+  /* ---------- 上一步 ---------- */
   let cursor = 0;
-  btnNext.addEventListener("click", () => {
-    const steps = buildSteps();
-    if (steps[cursor] && !isFilled(steps[cursor])) return;
-    if (cursor < steps.length - 1) {
-      cursor++;
-      renderProgress(steps[cursor]);
-      renderStep(cursor);
-    } else {
-      showResult();
-    }
-  });
-
   btnBack.addEventListener("click", () => {
     if (cursor === 0) return;
     const steps = buildSteps();

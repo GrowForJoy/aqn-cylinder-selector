@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="color-scheme" content="light" />
   <title>气缸开关型号选型助手</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,19 +17,10 @@
     <div class="masthead__inner">
       <div class="brand">
         <div class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 48 48" fill="none">
-            <rect x="4" y="6" width="40" height="24" rx="3" stroke="currentColor" stroke-width="2.5"/>
-            <circle cx="44" cy="18" r="6" fill="currentColor"/>
-            <rect x="10" y="17" width="22" height="2" fill="currentColor"/>
-            <rect x="10" y="22" width="14" height="2" fill="currentColor"/>
-            <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <path d="M4 24h40"/>
-              <path d="M14 34v4M24 34v4M34 34v4"/>
-            </g>
-          </svg>
+          <img src="AN.png" alt="艾奇诺" />
         </div>
         <div class="brand__text">
-          <h1>气缸开关型号选型助手</h1>
+          <h1>艾奇诺气缸开关型号选型</h1>
           <p>Cylinder Switch Model Selector</p>
         </div>
       </div>
@@ -55,10 +46,14 @@
         <h2 id="stepTitle">选择气缸系列</h2>
         <p id="stepDesc">请选择需要的气缸系列，不同系列对应不同的缸径范围与开关型号。</p>
       </div>
+      <!-- 系列搜索框 -->
+      <div class="series-search hidden" id="seriesSearch">
+        <input id="seriesSearchInput" type="search" placeholder="搜索气缸系列…" autocomplete="off" />
+      </div>
       <div class="options" id="optionsArea"></div>
       <div class="card__foot">
+        <span class="foot__hint">点选选项即进入下一步</span>
         <button class="btn btn--ghost" id="btnBack" type="button">← 上一步</button>
-        <button class="btn btn--primary" id="btnNext" type="button" disabled>下一步 →</button>
       </div>
     </section>
 
@@ -76,11 +71,6 @@
       </div>
     </section>
   </main>
-
-  <footer class="foot">
-    <span>数据源自 · 气缸系列-开关型号对照表</span>
-    <span>仅供选型参考</span>
-  </footer>
 
   <script src="data.js"></script>
   <script src="app.js"></script>
