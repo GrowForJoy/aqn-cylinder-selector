@@ -194,7 +194,6 @@
     const accOpts = accessoryOptions().options;
     const onlyNone = accOpts.length === 1 && accOpts[0] === "无（仅开关）";
     if (!onlyNone) {
-      state.accessory = null;   // 存在可选附件时强制点选
       steps.push("accessory");
     } else if (state.accessory === null) {
       state.accessory = "无（仅开关）";  // 无其他型号时默认无
@@ -491,7 +490,8 @@
     modelOutput.textContent = r.configuredCode;
     track("选型", "完成", r.configuredCode);
 
-    const opts = getCustomerOptions([r.configuredCode, r.switchCode], state.generation);
+    /* 只按不含附件的开关型号查询客户型号，避免附件把型号“锁定”导致查不到 */
+    const opts = getCustomerOptions([r.switchCode].filter(Boolean), state.generation);
     if (JSON.stringify(opts) !== JSON.stringify(customerOpts)) {
       customerOpts = opts || [];
       customerIdx = 0;
