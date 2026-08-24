@@ -376,9 +376,8 @@
 
   /* 客户型号查找：老款/新款 → 客户型号，带几个常见写法变体兜底 */
   const normModel = (s) => (s || "").replace(/\s+/g, "").replace(/\/+$/, "");
-  const modelVariants = (s) => {
-    /* 把“线长/出线/QD”的常见写法和底座的 G 后缀组合出所有变体，
-       反复收敛直到不再新增，确保 0.5M→0.5、03M→030、AN-10x→AN-10xG 等能相互组合命中 */
+  /* 纯写法归一（同型号不同写法），不跨型号 */
+  const modelBaseVariants = (s) => {
     const map = {
       "-0.5M(": "-0.5(", "-0.3M(": "-0.3(", "-0.5M)": "-0.5)",
       "-01M": "-010", "-02M": "-020", "-03M": "-030",
@@ -396,22 +395,31 @@
             if (!set.has(nxt)) { set.add(nxt); changed = true; }
           }
         }
-        /* 仅对尚未带 G 的底座补一次 G（负向前瞻避免 AN-102G→AN-102GG 死循环） */
-        const g = cur.replace(/^AN-10(\d)(?!G)/, "AN-10$1G");
-        if (g !== cur && !set.has(g)) { set.add(g); changed = true; }
       }
     }
     return [...set];
   };
   const getCustomerOptions = (models, gen) => {
-    const pool = [];
     const map = (typeof CUSTOMER_MAP !== "undefined" && CUSTOMER_MAP[gen]) || {};
+    const collect = (vs) => {
+      const o = [];
+      for (const v of vs) (map[v] || []).forEach((c) => { if (c && o.indexOf(c) < 0) o.push(c); });
+      return o;
+    };
     for (const m of models || []) {
-      for (const v of modelVariants(normModel(m))) {
-        (map[v] || []).forEach((c) => { if (c && pool.indexOf(c) < 0) pool.push(c); });
+      const baseV = modelBaseVariants(normModel(m));
+      const hit = collect(baseV);
+      if (hit.length) return hit;
+      /* 精确/写法归一都没命中时，才用“老款补 G”兜底，避免跨型号乱带 */
+      const gv = [];
+      for (const bv of baseV) {
+        const g = bv.replace(/^AN-10(\d)(?!G)/, "AN-10$1G");
+        if (g !== bv) gv.push(g);
       }
+      const hitG = collect([...new Set(gv)]);
+      if (hitG.length) return hitG;
     }
-    return pool;
+    return [];
   };
 
   /* 客户型号多选状态：默认选中第一项 */
@@ -440,7 +448,11 @@
   }
 
   function renderCustomerSelect() {
-    if (!customerOpts.length || customerOpts.length === 1) { customerSelect.hidden = true; return; }
+    if (!customerOpts.length || customerOpts.length === 1) {
+      customerSelect.hidden = true;
+      customerSelect.innerHTML = "";   // 无对应/仅一个时彻底清空，避免残留按钮
+      return;
+    }
     customerSelect.hidden = false;
     customerSelect.innerHTML = "";
     customerOpts.forEach((c, i) => {
@@ -496,12 +508,9 @@
     modelOutput.textContent = r.configuredCode;
     track("选型", "完成", r.configuredCode);
 
-    /* 只按不含附件的开关型号查询客户型号，避免附件把型号“锁定”导致查不到 */
-    const opts = getCustomerOptions([r.switchCode].filter(Boolean), state.generation);
-    if (JSON.stringify(opts) !== JSON.stringify(customerOpts)) {
-      customerOpts = opts || [];
-      customerIdx = 0;
-    }
+    /* 只按不含附件的开关型号查询客户型号，避免附件把型号"锁定"导致查不到 */
+    customerOpts = getCustomerOptions([r.switchCode].filter(Boolean), state.generation) || [];
+    customerIdx = 0;
     renderResultGrid(r);
     renderCustomerSelect();
     resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
