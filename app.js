@@ -127,8 +127,8 @@
             ];
       case "metal":
         return [
-          { value: "metal", label: "金属", sub: "型号带 J" },
           { value: "normal", label: "普通", sub: "型号不带 J" },
+          { value: "metal", label: "金属", sub: "型号带 J" },
         ];
       case "cable":
         return ["01", "02", "03", "05", "07"].map((m) => ({
