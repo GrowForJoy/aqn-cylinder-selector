@@ -185,6 +185,8 @@ body {
 }
 .chip b { color: var(--accent-2); font-weight: 600; }
 .chip__tag { color: var(--ink-faint); font-size: .72rem; }
+.chip--jump { cursor: pointer; transition: border-color .18s ease, transform .18s ease; }
+.chip--jump:hover { border-color: var(--accent); transform: translateY(-2px); }
 @keyframes pop { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* 卡片 */
@@ -356,6 +358,30 @@ body {
   border-bottom: 1px dashed var(--line);
   text-shadow: 0 0 24px rgba(56,161,240,.35);
   word-break: break-all;
+}
+.customer-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  transform-origin: top;
+  animation: rise .35s ease;
+}
+.cust-opt {
+  padding: 7px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: .78rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.cust-opt:hover { border-color: var(--accent); }
+.cust-opt.is-selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
 }
 .result__grid {
   display: grid;

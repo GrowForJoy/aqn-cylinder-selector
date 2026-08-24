@@ -76,8 +76,8 @@
   /* 气缸系列 → 气缸类型描述 */
   const SERIES_DESC = {
     TCM: "三轴气缸", TCL: "三轴气缸", QCK: "回转夹紧气缸",
-    MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧到销钉气缸",
-    HLQ: "双轴滑气缸", HLS: "双轴滑气缸",
+    MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
+    HLQ: "双轴滑台气缸", HLS: "双轴滑台气缸",
     JSI: "标准气缸", SAI: "标准气缸", "BE/BSE": "标准气缸",
     SC: "拉杆气缸", BSC: "拉杆气缸", SCJ: "拉杆气缸",
     BP: "笔型气缸", TN: "双轴气缸", TR: "双轴气缸",
@@ -131,7 +131,7 @@
           { value: "metal", label: "金属", sub: "型号带 J" },
         ];
       case "cable":
-        return ["01", "02", "03", "05", "07"].map((m) => ({
+        return ["0.5","01", "02", "03", "05", "07"].map((m) => ({
           value: m, label: m + "m", sub: "线缆长度",
         }));
       case "accessory": {
@@ -155,6 +155,12 @@
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
       default:           return val;
     }
+  };
+
+  /* 信号类型显示：两线式不分极性，自动显示"无极性" */
+  const signalDisplay = () => {
+    if (state.wiring === "two") return "无极性";
+    return state.signal ? labelOf("signal", state.signal) : null;
   };
 
   const stepMeta = (key) => {
@@ -235,25 +241,51 @@
   }
 
   function renderPicked() {
-    const chips = [];
-    const push = (tag, val) => val !== null && val !== undefined && chips.push(
-      `<span class="chip"><span class="chip__tag">${tag}</span><b>${val}</b></span>`);
-    push("系列", state.seriesName);
-    push("缸径", state.bore != null ? `${state.bore}mm` : null);
-    push("版本", state.generation ? labelOf("generation", state.generation) : null);
-    push("接线", state.wiring ? labelOf("wiring", state.wiring) : null);
-    push("信号", state.signal ? labelOf("signal", state.signal) : null);
+    const items = [];
+    const push = (tag, val, step) => {
+      if (val !== null && val !== undefined) items.push({ tag, val: String(val), step });
+    };
+    push("系列", state.seriesName, "series");
+    push("缸径", state.bore != null ? `${state.bore}mm` : null, "bore");
+    push("版本", state.generation ? labelOf("generation", state.generation) : null, "generation");
+    push("接线", state.wiring ? labelOf("wiring", state.wiring) : null, "wiring");
+    push("信号", signalDisplay(), "signal");
 
     const cands = candidateModels();
-    if (state.model) push("型号", state.model);
-    else if (cands && cands.length === 1) push("型号", cands[0]);
+    if (state.model) push("型号", state.model, "model");
+    else if (cands && cands.length === 1) push("型号", cands[0], "model");
 
-    push("出线", wireDisplay());
-    push("附件", state.accessory);
+    push("出线", wireDisplay(), "wireMethod");
+    push("附件", state.accessory, "accessory");
 
-    pickedBar.innerHTML = chips.join("");
-    pickedBar.classList.toggle("hidden", !chips.length);
+    const steps = buildSteps();
+    pickedBar.innerHTML = "";
+    items.forEach((it) => {
+      const span = document.createElement("span");
+      span.className = "chip" + (it.step && steps.indexOf(it.step) >= 0 ? " chip--jump" : "");
+      span.innerHTML = `<span class="chip__tag">${it.tag}</span><b>${it.val}</b>`;
+      if (it.step && steps.indexOf(it.step) >= 0) {
+        span.title = "点击回到该步骤";
+        span.addEventListener("click", () => gotoStep(steps.indexOf(it.step)));
+      }
+      pickedBar.appendChild(span);
+    });
+    pickedBar.classList.toggle("hidden", !items.length);
   }
+
+  /* 回到指定步骤（用于点击上方已选标签快速回退），并清空该步之后的选择 */
+  const gotoStep = (stepIdx) => {
+    const steps = buildSteps();
+    if (stepIdx < 0 || stepIdx >= steps.length) return;
+    const keep = new Set(steps.slice(0, stepIdx + 1));
+    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory"]
+      .forEach((k) => { if (!keep.has(k)) state[k] = null; });
+    cursor = stepIdx;
+    resultPanel.hidden = true;
+    renderProgress(steps[stepIdx]);
+    renderPicked();
+    renderStep(stepIdx);
+  };
 
   function renderStep(idx) {
     const steps = buildSteps();
@@ -346,21 +378,86 @@
   /* 客户型号查找：老款/新款 → 客户型号，带几个常见写法变体兜底 */
   const normModel = (s) => (s || "").replace(/\s+/g, "").replace(/\/+$/, "");
   const modelVariants = (s) => {
-    const list = [s];
-    [["-0.5M(", "-0.5("], ["-0.3M(", "-0.3("], ["-0.5M)", "-0.5)"]].forEach(([a, b]) => {
-      if (s.includes(a)) list.push(s.replace(a, b));
-    });
-    return list;
+    /* 把“线长/出线/QD”的常见写法和底座的 G 后缀组合出所有变体，
+       反复收敛直到不再新增，确保 0.5M→0.5、03M→030、AN-10x→AN-10xG 等能相互组合命中 */
+    const map = {
+      "-0.5M(": "-0.5(", "-0.3M(": "-0.3(", "-0.5M)": "-0.5)",
+      "-01M": "-010", "-02M": "-020", "-03M": "-030",
+      "-05M": "-050", "-07M": "-070", "-0.5M": "-0.5",
+    };
+    const set = new Set([s]);
+    let changed = true;
+    let guard = 0;
+    while (changed && guard++ < 50 && set.size < 200) {
+      changed = false;
+      for (const cur of [...set]) {
+        for (const [a, b] of Object.entries(map)) {
+          if (cur.includes(a)) {
+            const nxt = cur.replace(a, b);
+            if (!set.has(nxt)) { set.add(nxt); changed = true; }
+          }
+        }
+        /* 仅对尚未带 G 的底座补一次 G（负向前瞻避免 AN-102G→AN-102GG 死循环） */
+        const g = cur.replace(/^AN-10(\d)(?!G)/, "AN-10$1G");
+        if (g !== cur && !set.has(g)) { set.add(g); changed = true; }
+      }
+    }
+    return [...set];
   };
-  const lookupCustomer = (models, gen) => {
+  const getCustomerOptions = (models, gen) => {
+    const pool = [];
     const map = (typeof CUSTOMER_MAP !== "undefined" && CUSTOMER_MAP[gen]) || {};
     for (const m of models || []) {
       for (const v of modelVariants(normModel(m))) {
-        if (map[v]) return map[v];
+        (map[v] || []).forEach((c) => { if (c && pool.indexOf(c) < 0) pool.push(c); });
       }
     }
-    return null;
+    return pool;
   };
+
+  /* 客户型号多选状态：默认选中第一项 */
+  let customerOpts = [];
+  let customerIdx = 0;
+  let lastR = null;
+  const currentCustomer = () =>
+    customerOpts.length ? (customerOpts[customerIdx] || customerOpts[0]) : "无对应客户型号";
+  const customerSelect = $("#customerSelect");
+
+  function renderResultGrid(r) {
+    const rows = [
+      ["气缸系列", state.seriesName || "—"],
+      ["缸径", state.bore != null ? `${state.bore}mm` : "—"],
+      ["版本", state.generation ? labelOf("generation", state.generation) : "—"],
+      ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : "—"],
+      ["信号类型", signalDisplay() || "—"],
+      ["开关型号", r.switchModel || "—"],
+      ["出线方式", wireDisplay() || "—"],
+      ["附件", state.accessory || "无（仅开关）"],
+      ["客户型号", currentCustomer()],
+    ];
+    resultGrid.innerHTML = rows
+      .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`)
+      .join("");
+  }
+
+  function renderCustomerSelect() {
+    if (!customerOpts.length || customerOpts.length === 1) { customerSelect.hidden = true; return; }
+    customerSelect.hidden = false;
+    customerSelect.innerHTML = "";
+    customerOpts.forEach((c, i) => {
+      const bb = document.createElement("button");
+      bb.type = "button";
+      bb.className = "cust-opt" + (i === customerIdx ? " is-selected" : "");
+      bb.textContent = c;
+      bb.addEventListener("click", () => {
+        customerIdx = i;
+        track("客户型号", "切换", c);
+        renderCustomerSelect();
+        if (lastR) renderResultGrid(lastR);
+      });
+      customerSelect.appendChild(bb);
+    });
+  }
 
   function buildResult() {
     const cands = candidateModels();
@@ -389,39 +486,30 @@
 
   function showResult() {
     const r = buildResult();
+    lastR = r;
     resultPanel.hidden = false;
     modelOutput.textContent = r.configuredCode;
     track("选型", "完成", r.configuredCode);
-    const customer = lookupCustomer([r.configuredCode, r.switchCode], state.generation)
-      || "无对应客户型号";
 
-    const rows = [
-      ["气缸系列", state.seriesName || "—"],
-      ["缸径", state.bore != null ? `${state.bore}mm` : "—"],
-      ["版本", state.generation ? labelOf("generation", state.generation) : "—"],
-      ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : "—"],
-      ["信号类型", state.signal ? labelOf("signal", state.signal) : "—"],
-      ["开关型号", r.switchModel || "—"],
-      ["出线方式", wireDisplay() || "—"],
-      ["附件", state.accessory || "无（仅开关）"],
-      ["客户型号", customer],
-    ];
-    resultGrid.innerHTML = rows
-      .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`)
-      .join("");
+    const opts = getCustomerOptions([r.configuredCode, r.switchCode], state.generation);
+    if (JSON.stringify(opts) !== JSON.stringify(customerOpts)) {
+      customerOpts = opts || [];
+      customerIdx = 0;
+    }
+    renderResultGrid(r);
+    renderCustomerSelect();
     resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   const copyText = () => {
     const r = buildResult();
-    const customer = lookupCustomer([r.configuredCode, r.switchCode], state.generation)
-      || "无对应客户型号";
+    const customer = currentCustomer();
     const rows = [
       ["气缸系列", state.seriesName],
       ["缸径", state.bore != null ? `${state.bore}mm` : null],
       ["版本", state.generation ? labelOf("generation", state.generation) : null],
       ["接线方式", state.wiring ? labelOf("wiring", state.wiring) : null],
-      ["信号类型", state.signal ? labelOf("signal", state.signal) : null],
+      ["信号类型", signalDisplay()],
       ["开关型号", r.switchModel],
       ["出线方式", wireDisplay()],
       ["附件", state.accessory || "无（仅开关）"],
@@ -462,6 +550,9 @@
   btnRestart.addEventListener("click", () => {
     track("按钮", "重新选型");
     Object.keys(state).forEach((k) => (state[k] = null));
+    customerOpts = [];
+    customerIdx = 0;
+    lastR = null;
     cursor = 0;
     resultPanel.hidden = true;
     renderProgress("series");
