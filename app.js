@@ -34,6 +34,15 @@
   /* ---------- 工具 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
 
+  /* 百度统计事件埋点：category 类别 / action 动作 / label 标签 / value 数值 */
+  const track = (category, action, label, value) => {
+    if (typeof _hmt !== "undefined" && typeof _hmt.push === "function") {
+      try {
+        _hmt.push(["_trackEvent", category, action, label, value]);
+      } catch (e) { /* 埋点失败不影响页面 */ }
+    }
+  };
+
   const variantKey = () =>
     state.wiring === "two" ? "two"
       : (state.signal === "auto" ? "auto" : state.signal);
@@ -236,6 +245,7 @@
 
   function selectOption(key, opt) {
     setValue(key, key === "series" ? { ...opt } : opt.value);
+    track("选型", "选择-" + key, opt.label || opt.value);
     const steps = buildSteps();
     const idx = steps.indexOf(key);
     const isLast = idx === steps.length - 1;
@@ -271,6 +281,7 @@
     const r = buildResult();
     resultPanel.hidden = false;
     modelOutput.textContent = r.configuredCode;
+    track("选型", "完成", r.configuredCode);
 
     const rows = [
       ["气缸系列", state.seriesName || "—"],
@@ -313,10 +324,11 @@
     });
   };
   seriesSearchInput.addEventListener("input", filterSeries);
-  seriesSearchInput.addEventListener("search", filterSeries);
+  seriesSearchInput.addEventListener("search", () => track("搜索", "系列搜索", seriesSearchInput.value.trim()));
 
   btnCopy.addEventListener("click", async () => {
     const text = copyText();
+    track("按钮", "复制完整型号", buildResult().configuredCode);
     try {
       await navigator.clipboard.writeText(text);
     } catch {
@@ -332,6 +344,7 @@
   });
 
   btnRestart.addEventListener("click", () => {
+    track("按钮", "重新选型");
     Object.keys(state).forEach((k) => (state[k] = null));
     cursor = 0;
     resultPanel.hidden = true;
@@ -344,6 +357,7 @@
   let cursor = 0;
   btnBack.addEventListener("click", () => {
     if (cursor === 0) return;
+    track("按钮", "上一步");
     const steps = buildSteps();
     setValue(steps[cursor], null);           // 清除当前步值
     cursor--;
