@@ -77,8 +77,9 @@
       }
       case "wireMethod":
         return [
-          { value: "QD", label: "带QD头", sub: "QD", flag: "" },
-          { value: "nonQD", label: "不带QD", sub: "出线", flag: "" },
+          { value: "M12QD-SE", label: "M12QD-SE", sub: "带QD头" },
+          { value: "M12QD-SC", label: "M12QD-SC", sub: "带QD头" },
+          { value: "direct", label: "直接出线", sub: "不带QD头" },
         ];
       case "accessory":
         return OPTIONS.accessories.map((a, i) => ({ value: a, sub: i === 0 ? "默认" : "选配" }));
@@ -92,7 +93,7 @@
       case "generation": return val === "old" ? "老款" : "新款";
       case "wiring":     return val === "two" ? "两线式" : "三线式";
       case "signal":     return val === "auto" ? "自动识别" : val.toUpperCase();
-      case "wireMethod": return val === "QD" ? "带QD头" : "不带QD";
+      case "wireMethod": return val === "direct" ? "直接出线" : val;
       default:           return val;
     }
   };
@@ -104,8 +105,8 @@
       generation: ["03", "选择老款 / 新款", "老款对应 AN-1xx 系列开关，新款对应 AN-A6x 系列开关。"],
       wiring:     ["04", "选择接线方式", "接线方式分为两线式和三线式，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
       signal:     ["05", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
-      model:      ["06", "选择开关型号", "当前参数存在多个候选开关型号，请确认所需的实际型号。"],
-      wireMethod: ["07", "选择出线方式", "请选择带 QD 头还是不带 QD 头"],
+      model:      ["06", "选择开关型号", "请确认所需的实际开关型号。"],
+      wireMethod: ["07", "选择出线方式", "请选择出线方式：M12QD 系列接头或直接出线。"],
       accessory:  ["08", "选择附件", "可选配安装附件"],
     };
     return meta[key] || ["--", key, ""];
@@ -116,7 +117,7 @@
     const steps = ["series", "bore", "generation", "wiring"];
     if (state.wiring === "three") steps.push("signal");
     const cands = candidateModels();
-    if (cands && cands.length > 1) steps.push("model");
+    if (cands && cands.length) steps.push("model");
     steps.push("wireMethod");
     steps.push("accessory");
     return steps;
@@ -259,7 +260,7 @@
     const cands = candidateModels();
     const base = state.model || (cands && cands.length ? cands[0] : null);
     const full = base
-      ? `${state.seriesName} ${state.bore != null ? state.bore : ""} ${base} ${labelOf("wireMethod", state.wireMethod)}`
+      ? `${base}-${labelOf("wireMethod", state.wireMethod)}`
       : "—";
     return {
       switchModel: base,

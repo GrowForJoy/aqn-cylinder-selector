@@ -5,10 +5,10 @@ const GROUPS = [
     series: ["ACQ", "TCM", "TCL", "QCK"],
     boreMin: 25, boreMax: 80,
     old: {
-      two:   ["AN-103-D",  "AN-102-D"],
-      auto:  ["AN-103S-D", "AN-102S-D"],
-      npn:   ["AN-103N-D", "AN-102N-D"],
-      pnp:   ["AN-103P-D", "AN-102P-D"],
+      two:   ["AN-102-D"],
+      auto:  ["AN-102S-D"],
+      npn:   ["AN-102N-D"],
+      pnp:   ["AN-102P-D"],
     },
     new: {
       two:   ["AN-A6G-D"],
@@ -22,9 +22,9 @@ const GROUPS = [
     boreMin: 32, boreMax: 80,
     old: {
       two:   ["AN-102"],
-      auto:  ["AN-103S", "AN-102S"],
-      npn:   ["AN-103N", "AN-102N"],
-      pnp:   ["AN-103P", "AN-102P"],
+      auto:  ["AN-102S"],
+      npn:   ["AN-102N"],
+      pnp:   ["AN-102P"],
     },
     new: {
       two:   ["AN-A6G-D"],
@@ -149,6 +149,6 @@ const GROUPS = [
 
 /* 出线方式 / 附件 的可选值 */
 const OPTIONS = {
-  wireMethod: ["带QD头", "不带QD"],
+  wireMethod: ["M12QD-SE", "M12QD-SC", "直接出线"],
   accessories: ["无（仅开关）"],//附件，后期可加
 };
