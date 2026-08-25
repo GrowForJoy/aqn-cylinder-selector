@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="model-viewer.min.js"></script>
   <!-- 百度统计 -->
   <script>
     var _hmt = _hmt || [];
@@ -100,6 +101,18 @@
       <div class="result__model" id="modelOutput">—</div>
       <dl class="result__grid" id="resultGrid"></dl>
       <div class="customer-select" id="customerSelect" hidden></div>
+      <a class="result3d" id="result3dLink" href="3d-viewer.html" target="_blank" rel="noopener" hidden>
+        <div class="result3d__stage">
+          <model-viewer id="previewMv" src="" auto-rotate rotation-per-second="25deg" environment-image="neutral" shadow-intensity="1" exposure="0.95" interaction-prompt="none" reveal="auto" style="background: transparent"></model-viewer>
+          <span class="result3d__overlay" aria-hidden="true"></span>
+          <span class="result3d__hint">点击查看 →</span>
+        </div>
+        <div class="result3d__text">
+          <span class="result3d__title">三维数模</span>
+          <span class="result3d__sub">点击进入可旋转 / 缩放查看</span>
+        </div>
+      </a>
+      <div class="result3d--empty" id="result3dEmpty" hidden>三维数模即将上线</div>
       <div class="result__actions">
         <button class="btn btn--primary" id="btnCopy" type="button">复制完整型号</button>
         <button class="btn btn--ghost" id="btnRestart" type="button">重新选型</button>
@@ -114,6 +127,7 @@
   </div>
 
   <script src="data.js"></script>
+  <script src="models3d.js"></script>
   <script src="app.js"></script>
   <script>
     /* 左侧工具栏收起/展开 */

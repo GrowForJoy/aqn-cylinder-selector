@@ -40,6 +40,9 @@
   const lightbox = $("#lightbox");
   const lightboxImg = $("#lightboxImg");
   const lightboxClose = $("#lightboxClose");
+  const result3dLink = $("#result3dLink");
+  const result3dEmpty = $("#result3dEmpty");
+  const previewMv = $("#previewMv");
 
   /* ---------- 工具 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
@@ -207,6 +210,12 @@
       closeLightbox();
     }
   });
+  if (previewMv) {
+    previewMv.addEventListener("error", () => {
+      result3dLink.hidden = true;
+      result3dEmpty.hidden = false;
+    });
+  }
 
   const signalDisplay = () => {
     if (state.wiring === "two") return "无极性";
@@ -624,6 +633,31 @@
     };
   }
 
+  const switchBase = (sm) => {
+    if (!sm) return null;
+    return sm
+      .replace(/-D$/, "")             // 版本后缀 -D（如 AN-102-D）
+      .replace(/-(S|N|P)$/, "")      // 连字符信号后缀 -S/-N/-P（如 AN-105-S）
+      .replace(/(\d)(S|N|P)$/, "$1"); // 紧贴数字的信号后缀（如 AN-101S）
+  };
+  const find3D = (base) =>
+    (typeof MODELS_3D !== "undefined" ? MODELS_3D : []).find((m) => m.base === base) || null;
+
+  function render3D(switchModel) {
+    const base = switchBase(switchModel);
+    const m = base ? find3D(base) : null;
+    if (m && previewMv) {
+      result3dEmpty.hidden = true;
+      result3dLink.hidden = false;
+      result3dLink.href = "3d-viewer.html?m=" + encodeURIComponent(base);
+      previewMv.setAttribute("src", m.file);
+    } else {
+      result3dLink.hidden = true;
+      result3dEmpty.hidden = false;
+      if (previewMv) previewMv.removeAttribute("src");
+    }
+  }
+
   function showResult() {
     const r = buildResult();
     lastR = r;
@@ -635,6 +669,7 @@
     customerIdx = 0;
     renderResultGrid(r);
     renderCustomerSelect();
+    render3D(r.switchModel);
     resultPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
