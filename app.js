@@ -167,14 +167,14 @@
       const map = {
         "M12QD-SE": "Image/SE.png",
         "M12QD-SC": "Image/SC.png",
-        "M12QD": "Image/三线QD.png",
+        "M12QD": "Image/qd-3wire.png",
       };
       return map[value] || "";
     }
     if (step === "metal") {
       const map = {
-        "normal": "Image/标准.png",
-        "metal": "Image/金属.png",
+        "normal": "Image/connector-standard.png",
+        "metal": "Image/connector-metal.png",
       };
       return map[value] || "";
     }
@@ -233,8 +233,6 @@
   const buildSteps = () => {
     const steps = ["series", "bore", "generation", "wiring"];
     if (state.wiring === "three") steps.push("signal");
-    const cands = candidateModels();
-    if (cands && cands.length) steps.push("model");
     steps.push("wireMethod");
     if (state.wireMethod === "direct") steps.push("cable");
     else if (state.wireMethod) steps.push("metal");
@@ -297,10 +295,6 @@
     push("版本", state.generation ? labelOf("generation", state.generation) : null, "generation");
     push("接线", state.wiring ? labelOf("wiring", state.wiring) : null, "wiring");
     push("信号", signalDisplay(), "signal");
-
-    const cands = candidateModels();
-    if (state.model) push("型号", state.model, "model");
-    else if (cands && cands.length === 1) push("型号", cands[0], "model");
 
     push("出线", wireDisplay(), "wireMethod");
     push("附件", state.accessory, "accessory");
@@ -526,11 +520,11 @@
       ["开关型号", r.switchModel || "—"],
       ["出线方式", wireDisplay() || "—"],
       ["附件", state.accessory || "无（仅开关）"],
-      ["客户型号", currentCustomer()],
     ];
     if (r.counterpartOld) {
       rows.push(["对应老款型号", r.counterpartOld.configuredCode]);
     }
+    rows.push(["客户型号", currentCustomer()]);
     resultGrid.innerHTML = rows
       .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`)
       .join("");
@@ -561,7 +555,7 @@
 
   function buildResult() {
     const cands = candidateModels();
-    const base = state.model || (cands && cands.length ? cands[0] : null);
+    const base = cands && cands.length ? cands[0] : null;
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
 
@@ -612,13 +606,7 @@
     let counterpartOld = null;
     if (state.generation === "new" && state.group) {
       const oldCands = state.group.old[variantKey()] || [];
-      let oldBase = null;
-      if (state.model && cands && cands.length) {
-        const idx = cands.indexOf(state.model);
-        oldBase = oldCands[idx] || (oldCands.length ? oldCands[0] : null);
-      } else if (oldCands.length) {
-        oldBase = oldCands[0];
-      }
+      const oldBase = oldCands.length ? oldCands[0] : null;
       if (oldBase) {
         counterpartOld = {
           switchModel: oldBase,
@@ -662,12 +650,12 @@
       ["开关型号", r.switchModel],
       ["出线方式", wireDisplay()],
       ["附件", state.accessory || "无（仅开关）"],
-      ["客户型号", customer],
       ["完整型号", r.configuredCode],
     ];
     if (r.counterpartOld) {
       rows.push(["对应老款型号", r.counterpartOld.configuredCode]);
     }
+    rows.push(["客户型号", customer]);
     const line = (a, b) => `${a}：${b}`;
     return "【抗强磁开关型号选型结果】\n" + rows.filter(([, b]) => b !== null && b !== "" ).map(([a, b]) => line(a, b)).join("\n");
   };
