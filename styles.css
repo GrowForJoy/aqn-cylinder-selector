@@ -521,6 +521,19 @@ body {
   box-shadow: 0 8px 22px -10px rgba(56,161,240,.6);
 }
 .btn--primary:hover:not(:disabled) { filter: brightness(1.06); color: #ffffff; }
+.btn--download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  background: linear-gradient(180deg, #f7b855, var(--amber));
+  border-color: var(--amber);
+  color: #ffffff;
+  box-shadow: 0 8px 22px -10px rgba(244,166,60,.6);
+}
+.btn--download:hover:not(:disabled) { filter: brightness(1.06); color: #ffffff; }
+.btn--download[hidden] { display: none !important; }
+.btn--download svg { width: 16px; height: 16px; flex: none; }
 .btn--ghost.hidden { visibility: hidden; }
 
 /* 结果面板 */

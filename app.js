@@ -43,6 +43,7 @@
   const result3dLink = $("#result3dLink");
   const result3dEmpty = $("#result3dEmpty");
   const previewMv = $("#previewMv");
+  const result3dDl = $("#result3dDl");
 
   /* ---------- 工具 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
@@ -645,16 +646,26 @@
 
   function render3D(switchModel) {
     const base = switchBase(switchModel);
-    const m = base ? find3D(base) : null;
+    const acc = state.accessory;
+    const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
+    let m = null;
+    if (accSuffix) m = find3D(switchModel + accSuffix);
+    if (!m && base) m = find3D(base);
     if (m && previewMv) {
       result3dEmpty.hidden = true;
       result3dLink.hidden = false;
-      result3dLink.href = "3d-viewer.html?m=" + encodeURIComponent(base);
+      result3dLink.href = "3d-viewer.html?m=" + encodeURIComponent(m.base);
       previewMv.setAttribute("src", m.file);
+      if (result3dDl) {
+        result3dDl.hidden = false;
+        result3dDl.href = m.stp;
+        result3dDl.download = m.base + ".stp";
+      }
     } else {
       result3dLink.hidden = true;
       result3dEmpty.hidden = false;
       if (previewMv) previewMv.removeAttribute("src");
+      if (result3dDl) result3dDl.hidden = true;
     }
   }
 
