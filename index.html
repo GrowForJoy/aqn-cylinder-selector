@@ -74,10 +74,20 @@
       <div class="series-search hidden" id="seriesSearch">
         <input id="seriesSearchInput" type="search" placeholder="搜索气缸系列…" autocomplete="off" />
       </div>
-      <div class="options" id="optionsArea"></div>
+      <div class="card__body">
+        <div class="options" id="optionsArea"></div>
+        <aside class="wire-preview hidden" id="wirePreview" aria-label="出线方式效果图">
+          <div class="wire-preview__title">效果图</div>
+          <div class="wire-preview__img" id="wirePreviewImg"></div>
+          <div class="wire-preview__name" id="wirePreviewName">—</div>
+        </aside>
+      </div>
       <div class="card__foot">
-        <span class="foot__hint">点选选项即进入下一步</span>
-        <button class="btn btn--ghost" id="btnBack" type="button">← 上一步</button>
+        <span class="foot__hint" id="footHint">点选选项即进入下一步</span>
+        <div class="foot__btns">
+          <button class="btn btn--ghost" id="btnBack" type="button">← 上一步</button>
+          <button class="btn btn--primary hidden" id="btnNext" type="button">下一步 →</button>
+        </div>
       </div>
     </section>
 
@@ -96,6 +106,12 @@
       </div>
     </section>
   </main>
+
+  <!-- 图片放大灯箱 -->
+  <div class="lightbox hidden" id="lightbox" aria-hidden="true">
+    <button class="lightbox__close" id="lightboxClose" type="button" aria-label="关闭">×</button>
+    <img class="lightbox__img" id="lightboxImg" alt="放大图" />
+  </div>
 
   <script src="data.js"></script>
   <script src="app.js"></script>

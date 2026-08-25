@@ -27,11 +27,19 @@
   const seriesSearch = $("#seriesSearch");
   const seriesSearchInput = $("#seriesSearchInput");
   const btnBack = $("#btnBack");
+  const btnNext = $("#btnNext");
+  const footHint = $("#footHint");
   const resultPanel = $("#resultPanel");
   const modelOutput = $("#modelOutput");
   const resultGrid = $("#resultGrid");
   const btnCopy = $("#btnCopy");
   const btnRestart = $("#btnRestart");
+  const wirePreview = $("#wirePreview");
+  const wirePreviewImg = $("#wirePreviewImg");
+  const wirePreviewName = $("#wirePreviewName");
+  const lightbox = $("#lightbox");
+  const lightboxImg = $("#lightboxImg");
+  const lightboxClose = $("#lightboxClose");
 
   /* ---------- 工具 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
@@ -123,7 +131,7 @@
             ];
       case "metal":
         return [
-          { value: "normal", label: "标准", sub: "型号不带 J" },
+          { value: "normal", label: "标准", sub: "" },
           { value: "metal", label: "金属", sub: "型号带 J" },
         ];
       case "cable":
@@ -152,6 +160,53 @@
       default:           return val;
     }
   };
+
+  /* ---------- 效果图（出线方式 / 接头材质） ---------- */
+  const previewImgSrc = (step, value) => {
+    if (step === "wireMethod") {
+      const map = {
+        "M12QD-SE": "Image/SE.png",
+        "M12QD-SC": "Image/SC.png",
+        "M12QD": "Image/三线QD.png",
+      };
+      return map[value] || "";
+    }
+    if (step === "metal") {
+      const map = {
+        "normal": "Image/标准.png",
+        "metal": "Image/金属.png",
+      };
+      return map[value] || "";
+    }
+    return "";
+  };
+  const previewHtml = (step, value) => {
+    const src = previewImgSrc(step, value);
+    if (!src) return "";
+    return `<img class="wire-preview__pic" src="${src}" alt="效果图，点击放大" title="点击放大查看" />`;
+  };
+
+  /* ---------- 灯箱放大 ---------- */
+  const openLightbox = (src) => {
+    lightboxImg.src = src;
+    lightbox.classList.remove("hidden");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  };
+  const closeLightbox = () => {
+    lightbox.classList.add("hidden");
+    lightbox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+  if (lightboxClose) lightboxClose.addEventListener("click", closeLightbox);
+  if (lightbox) lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lightbox && !lightbox.classList.contains("hidden")) {
+      closeLightbox();
+    }
+  });
 
   const signalDisplay = () => {
     if (state.wiring === "two") return "无极性";
@@ -323,6 +378,39 @@
     const isLast = idx === steps.length - 1;
     btnBack.classList.toggle("hidden", idx === 0);
 
+    // 有效果图的步骤：wireMethod / metal
+    const previewSteps = ["wireMethod", "metal"];
+    if (previewSteps.includes(key)) {
+      const curVal = state[key];
+      const src = previewImgSrc(key, curVal);
+      const hasImg = !!src;
+      if (curVal && hasImg) {
+        wirePreview.classList.remove("hidden");
+        wirePreviewImg.innerHTML = previewHtml(key, curVal);
+        const title = key === "wireMethod" ? "出线方式效果图" : "接头材质效果图";
+        const label = key === "wireMethod" ? labelOf("wireMethod", curVal)
+          : (curVal === "metal" ? "金属接头" : "标准接头");
+        wirePreview.querySelector(".wire-preview__title").textContent = title;
+        wirePreviewName.textContent = label + "（点击放大）";
+        const pic = wirePreviewImg.querySelector(".wire-preview__pic");
+        if (pic) pic.addEventListener("click", () => openLightbox(src));
+      } else {
+        wirePreview.classList.add("hidden");
+      }
+      // 下一步按钮（wireMethod 步骤一定有；metal 步骤若后面还有附件则显示）
+      const steps = buildSteps();
+      const idxCur = steps.indexOf(key);
+      const hasNext = idxCur >= 0 && idxCur < steps.length - 1;
+      btnNext.classList.toggle("hidden", !curVal || !hasNext);
+      footHint.textContent = curVal
+        ? (hasNext ? "确认后点下一步" : "确认后查看结果")
+        : `请选择${key === "wireMethod" ? "出线方式" : "接头材质"}`;
+    } else {
+      wirePreview.classList.add("hidden");
+      btnNext.classList.add("hidden");
+      footHint.textContent = "点选选项即进入下一步";
+    }
+
     if (isLast && filled) showResult();
   }
 
@@ -342,7 +430,19 @@
     const isLast = idx === steps.length - 1;
 
     renderPicked();
-    if (isLast) {
+    if (key === "wireMethod" || key === "metal") {
+      if (isLast) {
+        // 有效果图且是最后一步：选中后直接出结果
+        renderProgress(key);
+        renderStep(idx);
+        showResult();
+      } else {
+        // 有效果图且不是最后一步：不自动前进，点「下一步」才走
+        renderProgress(key);
+        renderStep(idx);
+        resultPanel.hidden = true;
+      }
+    } else if (isLast) {
       // 最后一步：选完即出结果
       renderProgress(key);
       renderStep(idx);
@@ -428,6 +528,9 @@
       ["附件", state.accessory || "无（仅开关）"],
       ["客户型号", currentCustomer()],
     ];
+    if (r.counterpartOld) {
+      rows.push(["对应老款型号", r.counterpartOld.configuredCode]);
+    }
     resultGrid.innerHTML = rows
       .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`)
       .join("");
@@ -461,26 +564,75 @@
     const base = state.model || (cands && cands.length ? cands[0] : null);
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
-    let full, switchTail;
-    if (state.wireMethod === "direct") {
-      const t = state.cable ? `-${state.cable}M` : "";
-      full = base ? `${base}${t}${accSuffix}` : "—";
-      switchTail = t;
-    } else if (state.wireMethod) {
-      const br = state.wiring !== "three"
-        ? (state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)") : "";
-      let qd = "-M12QD-0.5M";
-      if (state.metal === "metal") qd += "-J";
-      full = base ? `${base}${qd}${br}${accSuffix}` : "—";
-      switchTail = `${qd}${br}`;
-    } else {
-      full = base || "—";
-      switchTail = "";
+
+    const buildFull = (switchBase) => {
+      if (!switchBase) return "—";
+      if (state.wireMethod === "direct") {
+        const t = state.cable ? `-${state.cable}M` : "";
+        return `${switchBase}${t}${accSuffix}`;
+      } else if (state.wireMethod) {
+        const br = state.wiring !== "three"
+          ? (state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)") : "";
+        let qd = "-M12QD-0.5M";
+        if (state.metal === "metal") qd += "-J";
+        return `${switchBase}${qd}${br}${accSuffix}`;
+      }
+      return switchBase;
+    };
+
+    const buildSwitchCode = (switchBase) => {
+      if (!switchBase) return null;
+      if (state.wireMethod === "direct") {
+        const t = state.cable ? `-${state.cable}M` : "";
+        return `${switchBase}${t}`;
+      } else if (state.wireMethod) {
+        const br = state.wiring !== "three"
+          ? (state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)") : "";
+        let qd = "-M12QD-0.5M";
+        if (state.metal === "metal") qd += "-J";
+        return `${switchBase}${qd}${br}`;
+      }
+      return switchBase;
+    };
+
+    const full = buildFull(base);
+    const switchTail = (() => {
+      if (state.wireMethod === "direct") return state.cable ? `-${state.cable}M` : "";
+      if (state.wireMethod) {
+        const br = state.wiring !== "three"
+          ? (state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)") : "";
+        let qd = "-M12QD-0.5M";
+        if (state.metal === "metal") qd += "-J";
+        return `${qd}${br}`;
+      }
+      return "";
+    })();
+
+    // 对应老款型号（仅当当前选新款时）
+    let counterpartOld = null;
+    if (state.generation === "new" && state.group) {
+      const oldCands = state.group.old[variantKey()] || [];
+      let oldBase = null;
+      if (state.model && cands && cands.length) {
+        const idx = cands.indexOf(state.model);
+        oldBase = oldCands[idx] || (oldCands.length ? oldCands[0] : null);
+      } else if (oldCands.length) {
+        oldBase = oldCands[0];
+      }
+      if (oldBase) {
+        counterpartOld = {
+          switchModel: oldBase,
+          configuredCode: buildFull(oldBase),
+          switchCode: buildSwitchCode(oldBase),
+        };
+      }
     }
+
     return {
       switchModel: base,
       configuredCode: full,
       switchCode: base ? `${base}${switchTail}` : null,
+      counterpartOld,
     };
   }
 
@@ -513,6 +665,9 @@
       ["客户型号", customer],
       ["完整型号", r.configuredCode],
     ];
+    if (r.counterpartOld) {
+      rows.push(["对应老款型号", r.counterpartOld.configuredCode]);
+    }
     const line = (a, b) => `${a}：${b}`;
     return "【抗强磁开关型号选型结果】\n" + rows.filter(([, b]) => b !== null && b !== "" ).map(([a, b]) => line(a, b)).join("\n");
   };
@@ -574,6 +729,17 @@
     clean();
     const s = buildSteps();
     renderProgress(s[cursor]);
+    renderStep(cursor);
+    resultPanel.hidden = true;
+  });
+
+  /* ---------- 下一步（通用：wireMethod / metal 等步骤） ---------- */
+  btnNext.addEventListener("click", () => {
+    track("按钮", "下一步");
+    const steps = buildSteps();
+    if (cursor >= steps.length - 1) return;
+    cursor++;
+    renderProgress(steps[cursor]);
     renderStep(cursor);
     resultPanel.hidden = true;
   });
