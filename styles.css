@@ -524,8 +524,10 @@ body {
 .btn--download {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   text-decoration: none;
+  text-align: center;
   background: linear-gradient(180deg, #f7b855, var(--amber));
   border-color: var(--amber);
   color: #ffffff;

@@ -14,8 +14,8 @@
   <div class="grain"></div>
 
   <!-- 左侧可收起工具栏 -->
-  <aside class="sidetool" id="sidetool">
-    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="收起工具栏" aria-expanded="true">
+  <aside class="sidetool is-collapsed" id="sidetool">
+    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="展开工具栏" aria-expanded="false">
       <span class="sidetool__chevron">‹</span>
     </button>
     <div class="sidetool__body">
@@ -77,6 +77,7 @@
     sidetoolToggle.addEventListener("click", function () {
       var collapsed = sidetool.classList.toggle("is-collapsed");
       sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
+      sidetoolToggle.setAttribute("aria-label", collapsed ? "展开工具栏" : "收起工具栏");
     });
 
     /* ---------- 型号解析逻辑 ---------- */

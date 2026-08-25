@@ -25,8 +25,8 @@
   <div class="grain"></div>
 
   <!-- 左侧可收起工具栏（固定在位，滚动时跟随屏幕） -->
-  <aside class="sidetool" id="sidetool">
-    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="收起工具栏" aria-expanded="true">
+  <aside class="sidetool is-collapsed" id="sidetool">
+    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="展开工具栏" aria-expanded="false">
       <span class="sidetool__chevron">‹</span>
     </button>
     <div class="sidetool__body">
@@ -117,7 +117,7 @@
         <button class="btn btn--primary" id="btnCopy" type="button">复制完整型号</button>
         <a class="btn btn--download" id="result3dDl" href="#" download hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          下载数模
+          3D数模下载
         </a>
         <button class="btn btn--ghost" id="btnRestart" type="button">重新选型</button>
       </div>
@@ -140,6 +140,7 @@
     sidetoolToggle.addEventListener("click", function () {
       var collapsed = sidetool.classList.toggle("is-collapsed");
       sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
+      sidetoolToggle.setAttribute("aria-label", collapsed ? "展开工具栏" : "收起工具栏");
     });
   </script>
 </body>
