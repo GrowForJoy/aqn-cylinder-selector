@@ -36,12 +36,11 @@
   /* ---------- 工具 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
 
-  /* 百度统计事件埋点：category 类别 / action 动作 / label 标签 / value 数值 */
   const track = (category, action, label, value) => {
     if (typeof _hmt !== "undefined" && typeof _hmt.push === "function") {
       try {
         _hmt.push(["_trackEvent", category, action, label, value]);
-      } catch (e) { /* 埋点失败不影响页面 */ }
+      } catch (e) { }
     }
   };
 
@@ -54,7 +53,6 @@
     return state.group[state.generation][variantKey()] || null;
   };
 
-  /* 根据当前 系列×缸径 计算可选安装附件（含选配/必选标记） */
   const accessoryOptions = () => {
     const g = state.group;
     if (!g || !(g.accessories && g.accessories.length) || state.bore == null) {
@@ -72,11 +70,9 @@
     return { options, required, hasAccessory: true };
   };
 
-  /* 每个选项统一携带 .value；下拉步骤额外携带 .description */
-  /* 气缸系列 → 气缸类型描述 */
   const SERIES_DESC = {
     TCM: "三轴气缸", TCL: "三轴气缸", QCK: "回转夹紧气缸",
-    MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
+    "ACQ/SDA": "薄壁气缸", MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
     HLQ: "双轴滑台气缸", HLS: "双轴滑台气缸",
     JSI: "标准气缸", SAI: "标准气缸", "BE/BSE": "标准气缸",
     SC: "拉杆气缸", BSC: "拉杆气缸", SCJ: "拉杆气缸",
@@ -127,7 +123,7 @@
             ];
       case "metal":
         return [
-          { value: "normal", label: "普通", sub: "型号不带 J" },
+          { value: "normal", label: "标准", sub: "型号不带 J" },
           { value: "metal", label: "金属", sub: "型号带 J" },
         ];
       case "cable":
@@ -157,7 +153,6 @@
     }
   };
 
-  /* 信号类型显示：两线式不分极性，自动显示"无极性" */
   const signalDisplay = () => {
     if (state.wiring === "two") return "无极性";
     return state.signal ? labelOf("signal", state.signal) : null;
@@ -173,7 +168,7 @@
       model:      ["06", "选择开关型号", "请确认所需的实际开关型号。"],
       wireMethod: ["07", "选择出线方式", "请选择出线方式：M12QD 系列接头或直接出线。"],
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
-      metal:      ["08", "选择接头材质", "QD 接头请选择金属或普通材质。"],
+      metal:      ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory:  ["09", "选择附件", "可选配安装附件"],
     };
     return meta[key] || ["--", key, ""];
@@ -189,8 +184,6 @@
     if (state.wireMethod === "direct") steps.push("cable");
     else if (state.wireMethod) steps.push("metal");
 
-    /* 附件步骤：仅当存在实际附件（选配或必选）才需用户选择；
-       没有其他型号时默认"无"并跳过该步骤 */
     const accOpts = accessoryOptions().options;
     const onlyNone = accOpts.length === 1 && accOpts[0] === "无（仅开关）";
     if (!onlyNone) {
@@ -272,7 +265,6 @@
     pickedBar.classList.toggle("hidden", !items.length);
   }
 
-  /* 回到指定步骤（用于点击上方已选标签快速回退），并清空该步之后的选择 */
   const gotoStep = (stepIdx) => {
     const steps = buildSteps();
     if (stepIdx < 0 || stepIdx >= steps.length) return;
@@ -293,7 +285,6 @@
     const options = stepOptions(key);
     const filled = isFilled(key);
 
-    // 仅在“选择气缸系列”步骤显示系列搜索框
     seriesSearch.classList.toggle("hidden", key !== "series");
     if (key !== "series") seriesSearchInput.value = "";
 
@@ -366,17 +357,14 @@
   }
 
   /* ---------- 结果 ---------- */
-  /* 出线方式（含材质/线长）的显示文本 */
   const wireDisplay = () => {
     if (!state.wireMethod) return null;
     if (state.wireMethod === "direct") return state.cable ? `直接出线 ${state.cable}m` : "直接出线";
     const qd = labelOf("wireMethod", state.wireMethod);
-    return state.metal === "metal" ? `${qd} 金属 / 0.5m` : `${qd} 普通 / 0.5m`;
+    return state.metal === "metal" ? `${qd} 金属 / 0.5m` : `${qd} 标准 / 0.5m`;
   };
 
-  /* 客户型号查找：老款/新款 → 客户型号，带几个常见写法变体兜底 */
   const normModel = (s) => (s || "").replace(/\s+/g, "").replace(/\/+$/, "");
-  /* 纯写法归一（同型号不同写法），不跨型号 */
   const modelBaseVariants = (s) => {
     const map = {
       "-0.5M(": "-0.5(", "-0.3M(": "-0.3(", "-0.5M)": "-0.5)",
@@ -410,7 +398,6 @@
       const baseV = modelBaseVariants(normModel(m));
       const hit = collect(baseV);
       if (hit.length) return hit;
-      /* 精确/写法归一都没命中时，才用“老款补 G”兜底，避免跨型号乱带 */
       const gv = [];
       for (const bv of baseV) {
         const g = bv.replace(/^AN-10(\d)(?!G)/, "AN-10$1G");
@@ -422,7 +409,6 @@
     return [];
   };
 
-  /* 客户型号多选状态：默认选中第一项 */
   let customerOpts = [];
   let customerIdx = 0;
   let lastR = null;
@@ -473,7 +459,6 @@
   function buildResult() {
     const cands = candidateModels();
     const base = state.model || (cands && cands.length ? cands[0] : null);
-    /* 出线相关段 + 附件统一放型号末尾，附件在最末 */
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
     let full, switchTail;
@@ -486,7 +471,6 @@
         ? (state.wireMethod === "M12QD-SC" ? "(SC)" : "(SE)") : "";
       let qd = "-M12QD-0.5M";
       if (state.metal === "metal") qd += "-J";
-      /* QD 段 = M12QD-0.5M(+J) + (SE)/(SC)；附件统一放最末尾 */
       full = base ? `${base}${qd}${br}${accSuffix}` : "—";
       switchTail = `${qd}${br}`;
     } else {
@@ -496,7 +480,6 @@
     return {
       switchModel: base,
       configuredCode: full,
-      /* 去掉附件段的开关型号，便于对照客户型号字典 */
       switchCode: base ? `${base}${switchTail}` : null,
     };
   }
@@ -508,7 +491,6 @@
     modelOutput.textContent = r.configuredCode;
     track("选型", "完成", r.configuredCode);
 
-    /* 只按不含附件的开关型号查询客户型号，避免附件把型号"锁定"导致查不到 */
     customerOpts = getCustomerOptions([r.switchCode].filter(Boolean), state.generation) || [];
     customerIdx = 0;
     renderResultGrid(r);

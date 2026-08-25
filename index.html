@@ -23,6 +23,20 @@
 <body>
   <div class="grain"></div>
 
+  <!-- 左侧可收起工具栏（固定在位，滚动时跟随屏幕） -->
+  <aside class="sidetool" id="sidetool">
+    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="收起工具栏" aria-expanded="true">
+      <span class="sidetool__chevron">‹</span>
+    </button>
+    <div class="sidetool__body">
+      <div class="sidetool__title">快捷导航</div>
+      <nav class="sidetool__nav">
+        <a class="sidetool__link is-current" href="index.html" aria-current="page">选型主页</a>
+        <a class="sidetool__link" href="second.html">型号解析</a>
+      </nav>
+    </div>
+  </aside>
+
   <header class="masthead">
     <div class="masthead__inner">
       <div class="brand">
@@ -85,5 +99,14 @@
 
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script>
+    /* 左侧工具栏收起/展开 */
+    var sidetool = document.getElementById("sidetool");
+    var sidetoolToggle = document.getElementById("sidetoolToggle");
+    sidetoolToggle.addEventListener("click", function () {
+      var collapsed = sidetool.classList.toggle("is-collapsed");
+      sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+  </script>
 </body>
 </html>

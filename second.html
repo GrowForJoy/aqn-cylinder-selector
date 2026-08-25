@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>艾奇诺 · 型号解析</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain"></div>
+
+  <!-- 左侧可收起工具栏 -->
+  <aside class="sidetool" id="sidetool">
+    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="收起工具栏" aria-expanded="true">
+      <span class="sidetool__chevron">‹</span>
+    </button>
+    <div class="sidetool__body">
+      <div class="sidetool__title">快捷导航</div>
+      <nav class="sidetool__nav">
+        <a class="sidetool__link" href="index.html">选型主页</a>
+        <a class="sidetool__link is-current" href="second.html" aria-current="page">型号解析</a>
+      </nav>
+    </div>
+  </aside>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <img src="AN.png" alt="艾奇诺" />
+        </div>
+        <div class="brand__text">
+          <h1>艾奇诺 · 型号解析工具</h1>
+          <p>Model Parser</p>
+        </div>
+      </div>
+      <div class="docno" aria-hidden="true">
+        <span>SPEC-SELECTOR</span><i>/</i><span>AN-102/A6</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <section class="card">
+      <div class="card__badge">P</div>
+      <div class="card__head">
+        <h2>完整型号解析</h2>
+        <p>输入完整的开关型号（如 AN-102-D-M12QD-0.5M(SE)），自动解析各项参数。</p>
+      </div>
+      <div class="series-search" id="parseSearch">
+        <input id="parseInput" type="search" placeholder="输入完整型号，如 AN-102-D-M12QD-0.5M(SE)…" autocomplete="off" />
+      </div>
+      <div class="parse-hint" id="parseHint">输入型号后自动解析</div>
+    </section>
+
+    <section class="result" id="parseResult" hidden>
+      <div class="result__head">
+        <span class="result__title">解析结果</span>
+        <span class="result__legend">PARSED</span>
+      </div>
+      <div class="result__model" id="parseModelOutput">—</div>
+      <dl class="result__grid" id="parseGrid"></dl>
+      <div class="customer-select" id="parseCustomer" hidden></div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="parser.js"></script>
+  <script>
+    /* 左侧工具栏收起/展开 */
+    var sidetool = document.getElementById("sidetool");
+    var sidetoolToggle = document.getElementById("sidetoolToggle");
+    sidetoolToggle.addEventListener("click", function () {
+      var collapsed = sidetool.classList.toggle("is-collapsed");
+      sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
+    });
+
+    /* ---------- 型号解析逻辑 ---------- */
+    var parseInput = document.getElementById("parseInput");
+    var parseHint = document.getElementById("parseHint");
+    var parseResult = document.getElementById("parseResult");
+    var parseModelOutput = document.getElementById("parseModelOutput");
+    var parseGrid = document.getElementById("parseGrid");
+    var parseCustomer = document.getElementById("parseCustomer");
+    var debounceTimer = null;
+
+    function renderParse() {
+      var raw = parseInput.value.trim();
+      if (!raw) {
+        parseResult.hidden = true;
+        parseHint.textContent = "输入型号后自动解析";
+        parseHint.className = "parse-hint";
+        return;
+      }
+
+      var r = window.__parseModel(raw);
+      if (r.error) {
+        parseResult.hidden = true;
+        parseHint.textContent = r.error;
+        parseHint.className = "parse-hint parse-hint--error";
+        return;
+      }
+
+      parseHint.textContent = "解析成功 ✓";
+      parseHint.className = "parse-hint parse-hint--ok";
+      parseResult.hidden = false;
+
+      var L = window.__parseLabels;
+      parseModelOutput.textContent = r.fullModel;
+
+      var rows = [
+        ["开关型号", r.switchModel],
+        ["版本", L.genLabel(r.generation)],
+        ["接线方式", L.wiringLabel(r.wiring)],
+        ["信号类型", L.signalLabel(r)],
+        ["出线方式", L.wireMethodLabel(r)],
+        ["接头材质", L.metalLabel(r)],
+        ["安装附件", r.accessory],
+        ["缸径范围", L.boreListLabel(r)],
+        ["适用系列", L.seriesLabel(r)],
+      ];
+      parseGrid.innerHTML = rows
+        .map(function (row) {
+          return '<div><dt>' + row[0] + '</dt><dd>' + row[1] + '</dd></div>';
+        })
+        .join("");
+
+      // 客户型号
+      if (r.customerModels && r.customerModels.length) {
+        parseCustomer.hidden = false;
+        parseCustomer.innerHTML = '<span class="chip__tag">对应客户型号</span>';
+        r.customerModels.forEach(function (c) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "cust-opt is-selected";
+          b.textContent = c;
+          b.style.cursor = "default";
+          parseCustomer.appendChild(b);
+        });
+      } else {
+        parseCustomer.hidden = true;
+        parseCustomer.innerHTML = "";
+      }
+    }
+
+    parseInput.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(renderParse, 200);
+    });
+    parseInput.addEventListener("search", renderParse);
+    parseInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); renderParse(); }
+    });
+  </script>
+</body>
+</html>

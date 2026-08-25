@@ -51,6 +51,110 @@ body {
   mask-image: radial-gradient(circle at 50% 30%, #000 30%, transparent 78%);
 }
 
+/* ---------- 左侧可收起工具栏（fixed 固定在位，滚动时跟随屏幕） ---------- */
+.sidetool {
+  position: fixed;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: stretch;
+  transition: transform .3s ease;
+}
+.sidetool__toggle {
+  width: 22px;
+  border: 1px solid var(--line-strong);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: rgba(255,255,255,.94);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 1.1rem;
+  transition: background .18s, color .18s;
+}
+.sidetool__toggle:hover { background: var(--accent); color: #fff; }
+.sidetool__chevron { display: inline-block; transition: transform .3s ease; }
+
+/* 工具栏主体（垂直面板） */
+.sidetool__body {
+  width: 150px;
+  padding: 14px 12px;
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  box-shadow: 0 18px 40px -20px rgba(28,43,60,.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: width .3s ease, opacity .3s ease;
+  overflow: hidden;
+}
+.sidetool__title {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--line);
+  white-space: nowrap;
+}
+.sidetool__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidetool__link {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: .86rem;
+  color: var(--ink-dim);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.sidetool__link:hover { background: var(--panel-2); color: var(--ink); }
+.sidetool__link.is-current {
+  background: rgba(56,161,240,.12);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 收起状态：隐藏面板，图标翻转 */
+.sidetool.is-collapsed .sidetool__body {
+  width: 0;
+  opacity: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-color: transparent;
+  pointer-events: none;
+}
+.sidetool.is-collapsed .sidetool__toggle { border-radius: 10px; border-right: 1px solid var(--line-strong); }
+.sidetool.is-collapsed .sidetool__chevron { transform: rotate(180deg); }
+
+@media (max-width: 620px) {
+  .sidetool { left: 6px; }
+  .sidetool__body { width: 132px; }
+}
+
+/* ---------- 型号解析页 ---------- */
+.parse-hint {
+  margin-top: 12px;
+  font-size: .82rem;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+}
+.parse-hint--ok { color: var(--ok); }
+.parse-hint--error { color: var(--danger); }
+
 /* ---------- 顶栏 ---------- */
 .masthead {
   position: relative;
