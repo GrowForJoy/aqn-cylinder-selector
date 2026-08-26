@@ -37,7 +37,7 @@ const GROUPS = [
   },
   {
     series: ["AQK", "BAQK"],
-    boreMin: 63, boreMax: 80,
+    boreMin: 50, boreMax: 80,
     old: {
       two:   ["AN-102"],
       auto:  ["AN-102S"],

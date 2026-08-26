@@ -183,12 +183,17 @@
       return map[value] || "";
     }
     if (step === "generation") {
-      // 根据当前气缸组对应的开关型号显示预览图（标准型 = AN-1xx，增强型 = AN-A6x）
+      // 根据已选的接线方式 + 信号类型对应的具体型号显示预览图
       const g = state.group;
       const pool = g && (value === "old" ? g.old : g.new);
-      if (!pool || !pool.two || !pool.two[0]) return "";
+      if (!pool) return "";
+      const vk = variantKey() || "two";
+      const model = (pool[vk] && pool[vk][0])
+        ? pool[vk][0]
+        : (pool.two && pool.two[0]);
+      if (!model) return "";
       if (value === "old") {
-        const m = pool.two[0].replace(/-D$/, "");
+        const m = model.replace(/-D$/, "").replace(/-[SNP]$/, "").replace(/(\d)(S|N|P)$/, "$1");
         const map = {
           "AN-101": "Image/101G.png",
           "AN-102": "Image/102G.png",
@@ -196,7 +201,7 @@
         };
         return map[m] || "";
       }
-      let base = pool.two[0].replace(/-[SNP]$/, "");
+      let base = model.replace(/-[SNP]$/, "");
       if (base === "AN-A6BG") base = "AN-A6G"; // 无独立图片，借用相近的 A6G
       return `Image/${base}.png`;
     }
@@ -245,9 +250,9 @@
     const meta = {
       series:     ["01", "选择气缸系列", "请选择需要的气缸系列，不同系列对应不同的缸径范围与开关型号。"],
       bore:       ["02", "选择缸径", `当前缸径范围为 ${state.group ? state.group.boreMin : "-"} ~ ${state.group ? state.group.boreMax : "-"} mm，请选择实际需要的内径规格。`],
-      generation: ["03", "选择标准型 / 增强型", "标准型对应 AN-1xx 系列开关，增强型对应 AN-A6x 系列开关。"],
-      wiring:     ["04", "选择接线方式", "接线方式分为两线式和三线式，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
-      signal:     ["05", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
+      wiring:     ["03", "选择接线方式", "接线方式分为两线式和三线式，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
+      signal:     ["04", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
+      generation: ["05", "选择标准型 / 增强型", "标准型对应 AN-1xx 系列开关，增强型对应 AN-A6x 系列开关。"],
       model:      ["06", "选择开关型号", "请确认所需的实际开关型号。"],
       wireMethod: ["07", "选择出线方式", "请选择出线方式：M12QD 系列接头或直接出线。"],
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
@@ -259,8 +264,9 @@
 
   /* ---------- 动态步骤 ---------- */
   const buildSteps = () => {
-    const steps = ["series", "bore", "generation", "wiring"];
+    const steps = ["series", "bore", "wiring"];
     if (state.wiring === "three") steps.push("signal");
+    steps.push("generation");
     steps.push("wireMethod");
     if (state.wireMethod === "direct") steps.push("cable");
     else if (state.wireMethod) steps.push("metal");
