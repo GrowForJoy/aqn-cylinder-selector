@@ -185,7 +185,6 @@
         return;
       }
 
-      var L = window.__parseLabels;
       parseHint.textContent = "已找到对应型号 ✓";
       parseHint.className = "parse-hint parse-hint--ok";
       parseResult.hidden = false;
@@ -194,8 +193,7 @@
       var rows = [["客户型号", raw]];
       for (var i = 0; i < ours.length; i++) {
         rows.push(
-          ["对应我们型号", ours[i].our],
-          ["版本", L.genLabel(ours[i].gen)]
+          [ours[i].gen === "old" ? "对应标准型" : "对应增强型", ours[i].our]
         );
       }
       parseGrid.innerHTML = rows
