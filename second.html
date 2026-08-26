@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <div class="grain"></div>
@@ -65,10 +66,29 @@
       <div class="result__model" id="parseModelOutput">—</div>
       <dl class="result__grid" id="parseGrid"></dl>
       <div class="customer-select" id="parseCustomer" hidden></div>
+      <a class="result3d" id="parse3dLink" href="3d-viewer.html" target="_blank" rel="noopener" hidden>
+        <div class="result3d__stage">
+          <model-viewer id="parsePreviewMv" src="" auto-rotate rotation-per-second="25deg" environment-image="neutral" shadow-intensity="1" exposure="0.95" interaction-prompt="none" reveal="auto" style="background: transparent"></model-viewer>
+          <span class="result3d__overlay" aria-hidden="true"></span>
+          <span class="result3d__hint">点击查看 →</span>
+        </div>
+        <div class="result3d__text">
+          <span class="result3d__title">三维数模</span>
+          <span class="result3d__sub">点击进入可旋转 / 缩放查看</span>
+        </div>
+      </a>
+      <div class="result3d--empty" id="parse3dEmpty" hidden>三维数模即将上线</div>
+      <div class="result__actions">
+        <a class="btn btn--download" id="parse3dDl" href="#" download hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          3D数模下载
+        </a>
+      </div>
     </section>
   </main>
 
   <script src="data.js"></script>
+  <script src="models3d.js"></script>
   <script src="parser.js"></script>
   <script>
     /* 左侧工具栏收起/展开 */
@@ -79,6 +99,54 @@
       sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
       sidetoolToggle.setAttribute("aria-label", collapsed ? "展开工具栏" : "收起工具栏");
     });
+
+    /* ---------- 3D数模联动 ---------- */
+    var parse3dLink = document.getElementById("parse3dLink");
+    var parse3dEmpty = document.getElementById("parse3dEmpty");
+    var parsePreviewMv = document.getElementById("parsePreviewMv");
+    var parse3dDl = document.getElementById("parse3dDl");
+
+    function switchBase(sm) {
+      if (!sm) return null;
+      return sm
+        .replace(/-D$/, "")
+        .replace(/-(S|N|P)$/, "")
+        .replace(/(\d)(S|N|P)$/, "$1");
+    }
+    function find3D(base) {
+      return (typeof MODELS_3D !== "undefined" ? MODELS_3D : []).find(function (m) { return m.base === base; }) || null;
+    }
+    function renderParse3D(r) {
+      if (!r || !r.switchModel) {
+        parse3dLink.hidden = true;
+        parse3dEmpty.hidden = true;
+        if (parsePreviewMv) parsePreviewMv.removeAttribute("src");
+        if (parse3dDl) parse3dDl.hidden = true;
+        return;
+      }
+      var base = switchBase(r.switchModel);
+      var acc = r.accessory;
+      var accSuffix = acc && acc !== "无（仅开关）" ? "-" + acc : "";
+      var m = null;
+      if (accSuffix) m = find3D(r.switchModel + accSuffix);
+      if (!m && base) m = find3D(base);
+      if (m && parsePreviewMv) {
+        parse3dEmpty.hidden = true;
+        parse3dLink.hidden = false;
+        parse3dLink.href = "3d-viewer.html?m=" + encodeURIComponent(m.base);
+        parsePreviewMv.setAttribute("src", m.file);
+        if (parse3dDl) {
+          parse3dDl.hidden = false;
+          parse3dDl.href = m.stp;
+          parse3dDl.download = m.base + ".stp";
+        }
+      } else {
+        parse3dLink.hidden = true;
+        parse3dEmpty.hidden = false;
+        if (parsePreviewMv) parsePreviewMv.removeAttribute("src");
+        if (parse3dDl) parse3dDl.hidden = true;
+      }
+    }
 
     /* ---------- 型号解析逻辑 ---------- */
     var parseInput = document.getElementById("parseInput");
@@ -95,6 +163,7 @@
         parseResult.hidden = true;
         parseHint.textContent = "输入型号后自动解析";
         parseHint.className = "parse-hint";
+        renderParse3D(null);
         return;
       }
 
@@ -103,6 +172,7 @@
         parseResult.hidden = true;
         parseHint.textContent = r.error;
         parseHint.className = "parse-hint parse-hint--error";
+        renderParse3D(null);
         return;
       }
 
@@ -146,6 +216,7 @@
         parseCustomer.hidden = true;
         parseCustomer.innerHTML = "";
       }
+      renderParse3D(r);
     }
 
     parseInput.addEventListener("input", function () {
