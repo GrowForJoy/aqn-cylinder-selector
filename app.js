@@ -104,8 +104,8 @@
         return rangeBores(state.group).map((b) => ({ value: b, sub: "mm" }));
       case "generation":
         return [
-          { value: "old", label: "老款", sub: "AN-1xx" },
-          { value: "new", label: "新款", sub: "AN-A6x" },
+          { value: "old", label: "标准型", sub: "AN-1xx" },
+          { value: "new", label: "增强型", sub: "AN-A6x" },
         ];
       case "wiring":
         return [
@@ -156,7 +156,7 @@
 
   const labelOf = (key, val) => {
     switch (key) {
-      case "generation": return val === "old" ? "老款" : "新款";
+      case "generation": return val === "old" ? "标准型" : "增强型";
       case "wiring":     return val === "two" ? "两线式" : "三线式";
       case "signal":     return val === "auto" ? "自动识别" : val.toUpperCase();
       case "wireMethod": return val === "direct" ? "直接出线"
@@ -181,6 +181,24 @@
         "metal": "Image/connector-metal.png",
       };
       return map[value] || "";
+    }
+    if (step === "generation") {
+      // 根据当前气缸组对应的开关型号显示预览图（标准型 = AN-1xx，增强型 = AN-A6x）
+      const g = state.group;
+      const pool = g && (value === "old" ? g.old : g.new);
+      if (!pool || !pool.two || !pool.two[0]) return "";
+      if (value === "old") {
+        const m = pool.two[0].replace(/-D$/, "");
+        const map = {
+          "AN-101": "Image/101G.png",
+          "AN-102": "Image/102G.png",
+          "AN-105": "Image/105G.png",
+        };
+        return map[m] || "";
+      }
+      let base = pool.two[0].replace(/-[SNP]$/, "");
+      if (base === "AN-A6BG") base = "AN-A6G"; // 无独立图片，借用相近的 A6G
+      return `Image/${base}.png`;
     }
     return "";
   };
@@ -227,7 +245,7 @@
     const meta = {
       series:     ["01", "选择气缸系列", "请选择需要的气缸系列，不同系列对应不同的缸径范围与开关型号。"],
       bore:       ["02", "选择缸径", `当前缸径范围为 ${state.group ? state.group.boreMin : "-"} ~ ${state.group ? state.group.boreMax : "-"} mm，请选择实际需要的内径规格。`],
-      generation: ["03", "选择老款 / 新款", "老款对应 AN-1xx 系列开关，新款对应 AN-A6x 系列开关。"],
+      generation: ["03", "选择标准型 / 增强型", "标准型对应 AN-1xx 系列开关，增强型对应 AN-A6x 系列开关。"],
       wiring:     ["04", "选择接线方式", "接线方式分为两线式和三线式，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
       signal:     ["05", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
       model:      ["06", "选择开关型号", "请确认所需的实际开关型号。"],
@@ -382,8 +400,8 @@
     const isLast = idx === steps.length - 1;
     btnBack.classList.toggle("hidden", idx === 0);
 
-    // 有效果图的步骤：wireMethod / metal
-    const previewSteps = ["wireMethod", "metal"];
+    // 有效果图的步骤：wireMethod / metal / generation
+    const previewSteps = ["wireMethod", "metal", "generation"];
     if (previewSteps.includes(key)) {
       const curVal = state[key];
       const src = previewImgSrc(key, curVal);
@@ -391,9 +409,12 @@
       if (curVal && hasImg) {
         wirePreview.classList.remove("hidden");
         wirePreviewImg.innerHTML = previewHtml(key, curVal);
-        const title = key === "wireMethod" ? "出线方式效果图" : "接头材质效果图";
-        const label = key === "wireMethod" ? labelOf("wireMethod", curVal)
-          : (curVal === "metal" ? "金属接头" : "标准接头");
+        const meta = {
+          wireMethod: ["出线方式效果图", labelOf("wireMethod", curVal)],
+          metal:      ["接头材质效果图", curVal === "metal" ? "金属接头" : "标准接头"],
+          generation: ["开关型号效果图", labelOf("generation", curVal)],
+        };
+        const [title, label] = meta[key];
         wirePreview.querySelector(".wire-preview__title").textContent = title;
         wirePreviewName.textContent = label + "（点击放大）";
         const pic = wirePreviewImg.querySelector(".wire-preview__pic");
@@ -401,14 +422,16 @@
       } else {
         wirePreview.classList.add("hidden");
       }
-      // 下一步按钮（wireMethod 步骤一定有；metal 步骤若后面还有附件则显示）
+      // 下一步按钮（wireMethod 步骤一定有；metal/generation 步骤若后面还有步骤则显示）
       const steps = buildSteps();
       const idxCur = steps.indexOf(key);
       const hasNext = idxCur >= 0 && idxCur < steps.length - 1;
       btnNext.classList.toggle("hidden", !curVal || !hasNext);
+      const hintKey = key === "wireMethod" ? "出线方式"
+        : key === "metal" ? "接头材质" : "标准型 / 增强型";
       footHint.textContent = curVal
         ? (hasNext ? "确认后点下一步" : "确认后查看结果")
-        : `请选择${key === "wireMethod" ? "出线方式" : "接头材质"}`;
+        : `请选择${hintKey}`;
     } else {
       wirePreview.classList.add("hidden");
       btnNext.classList.add("hidden");
@@ -434,7 +457,7 @@
     const isLast = idx === steps.length - 1;
 
     renderPicked();
-    if (key === "wireMethod" || key === "metal") {
+    if (key === "wireMethod" || key === "metal" || key === "generation") {
       if (isLast) {
         // 有效果图且是最后一步：选中后直接出结果
         renderProgress(key);
@@ -532,7 +555,7 @@
       ["附件", state.accessory || "无（仅开关）"],
     ];
     if (r.counterpartOld) {
-      rows.push(["对应老款型号", r.counterpartOld.configuredCode]);
+      rows.push(["对应标准型型号", r.counterpartOld.configuredCode]);
     }
     rows.push(["客户型号", currentCustomer()]);
     resultGrid.innerHTML = rows
@@ -612,7 +635,7 @@
       return "";
     })();
 
-    // 对应老款型号（仅当当前选新款时）
+    // 对应标准型型号（仅当当前选增强型时）
     let counterpartOld = null;
     if (state.generation === "new" && state.group) {
       const oldCands = state.group.old[variantKey()] || [];
@@ -699,7 +722,7 @@
       ["完整型号", r.configuredCode],
     ];
     if (r.counterpartOld) {
-      rows.push(["对应老款型号", r.counterpartOld.configuredCode]);
+      rows.push(["对应标准型型号", r.counterpartOld.configuredCode]);
     }
     rows.push(["客户型号", customer]);
     const line = (a, b) => `${a}：${b}`;

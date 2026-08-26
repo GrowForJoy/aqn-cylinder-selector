@@ -165,7 +165,7 @@
   }
 
   /* ---------- 显示标签 ---------- */
-  const genLabel = (g) => (g === "old" ? "老款 (AN-1xx)" : "新款 (AN-A6x)");
+  const genLabel = (g) => (g === "old" ? "标准型 (AN-1xx)" : "增强型 (AN-A6x)");
   const wiringLabel = (w) => (w === "two" ? "两线式" : "三线式");
   const signalLabel = (r) => {
     if (r.wiring === "two") return "无极性";
