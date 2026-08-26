@@ -45,10 +45,10 @@ const GROUPS = [
       pnp:   ["AN-102P"],
     },
     new: {
-      two:   ["AN-A6G-D"],
-      auto:  ["AN-A6G-S-D"],
-      npn:   ["AN-A6G-N-D"],
-      pnp:   ["AN-A6G-P-D"],
+      two:   ["AN-A6G"],
+      auto:  ["AN-A6G-S"],
+      npn:   ["AN-A6G-N"],
+      pnp:   ["AN-A6G-P"],
     },
   },
   {

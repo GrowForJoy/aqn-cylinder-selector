@@ -171,7 +171,6 @@
       renderParse3D(null);
     }
 
-    /* 客户型号反查：输入客户型号 → 显示对应我们型号 */
     function renderReverse() {
       var raw = parseInput.value.trim();
       if (!raw) { resetParseIdle(); return; }
@@ -202,11 +201,9 @@
         })
         .join("");
 
-      // 反查模式下不再展示客户型号再映射
       parseCustomer.hidden = true;
       parseCustomer.innerHTML = "";
 
-      // 尽力展示第一个匹配型号的三维数模
       var first = window.__parseModel(ours[0].our);
       renderParse3D(first && !first.error ? first : null);
     }
