@@ -52,6 +52,10 @@
         <h2>完整型号解析</h2>
         <p>输入完整的开关型号（如 AN-102-D-M12QD-0.5M(SE)），自动解析各项参数。</p>
       </div>
+      <div class="parse-modes" id="parseModes">
+        <button type="button" class="parse-mode is-active" data-mode="parse">型号解析</button>
+        <button type="button" class="parse-mode" data-mode="reverse">客户型号反查</button>
+      </div>
       <div class="series-search" id="parseSearch">
         <input id="parseInput" type="search" placeholder="输入完整型号，如 AN-102-D-M12QD-0.5M(SE)…" autocomplete="off" />
       </div>
@@ -155,17 +159,71 @@
     var parseModelOutput = document.getElementById("parseModelOutput");
     var parseGrid = document.getElementById("parseGrid");
     var parseCustomer = document.getElementById("parseCustomer");
+    var parseModes = document.getElementById("parseModes");
+    var parseMode = "parse"; // 'parse' | 'reverse'
     var debounceTimer = null;
+
+    /* 重置为闲置提示 */
+    function resetParseIdle() {
+      parseResult.hidden = true;
+      parseHint.textContent = "输入客户型号后自动反查";
+      parseHint.className = "parse-hint";
+      renderParse3D(null);
+    }
+
+    /* 客户型号反查：输入客户型号 → 显示对应我们型号 */
+    function renderReverse() {
+      var raw = parseInput.value.trim();
+      if (!raw) { resetParseIdle(); return; }
+
+      var ours = window.__findOurByCustomer(raw);
+      if (!ours || !ours.length) {
+        parseResult.hidden = true;
+        parseHint.textContent = "未找到对应的我们型号，请检查客户型号是否正确";
+        parseHint.className = "parse-hint parse-hint--error";
+        renderParse3D(null);
+        return;
+      }
+
+      var L = window.__parseLabels;
+      parseHint.textContent = "已找到对应型号 ✓";
+      parseHint.className = "parse-hint parse-hint--ok";
+      parseResult.hidden = false;
+      parseModelOutput.textContent = raw;
+
+      var rows = [["客户型号", raw]];
+      for (var i = 0; i < ours.length; i++) {
+        rows.push(
+          ["对应我们型号", ours[i].our],
+          ["版本", L.genLabel(ours[i].gen)]
+        );
+      }
+      parseGrid.innerHTML = rows
+        .map(function (row) {
+          return '<div><dt>' + row[0] + '</dt><dd>' + row[1] + '</dd></div>';
+        })
+        .join("");
+
+      // 反查模式下不再展示客户型号再映射
+      parseCustomer.hidden = true;
+      parseCustomer.innerHTML = "";
+
+      // 尽力展示第一个匹配型号的三维数模
+      var first = window.__parseModel(ours[0].our);
+      renderParse3D(first && !first.error ? first : null);
+    }
 
     function renderParse() {
       var raw = parseInput.value.trim();
       if (!raw) {
         parseResult.hidden = true;
-        parseHint.textContent = "输入型号后自动解析";
+        parseHint.textContent = parseMode === "reverse" ? "输入客户型号后自动反查" : "输入型号后自动解析";
         parseHint.className = "parse-hint";
         renderParse3D(null);
         return;
       }
+
+      if (parseMode === "reverse") { renderReverse(); return; }
 
       var r = window.__parseModel(raw);
       if (r.error) {
@@ -227,6 +285,24 @@
     parseInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); renderParse(); }
     });
+
+    /* 模式切换 */
+    if (parseModes) {
+      parseModes.querySelectorAll(".parse-mode").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          parseModes.querySelectorAll(".parse-mode").forEach(function (b) {
+            b.classList.toggle("is-active", b === btn);
+          });
+          parseMode = btn.getAttribute("data-mode");
+          parseInput.placeholder = parseMode === "reverse"
+            ? "输入客户型号，如 DS1-69AG-M12QD-0.5M(SE)…"
+            : "输入完整型号，如 AN-102-D-M12QD-0.5M(SE)…";
+          parseHint.textContent = parseMode === "reverse" ? "输入客户型号后自动反查" : "输入型号后自动解析";
+          parseHint.className = "parse-hint";
+          renderParse();
+        });
+      });
+    }
   </script>
 </body>
 </html>

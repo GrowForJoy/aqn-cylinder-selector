@@ -325,6 +325,24 @@ body {
 }
 .card__head p { margin: 0; color: var(--ink-dim); font-size: .9rem; }
 
+/* 解析页模式切换 */
+.parse-modes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.parse-mode {
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: .8rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.parse-mode:hover { border-color: var(--accent); }
+.parse-mode.is-active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+/* 客户型号反查的对应我们型号展示 */
+.ours-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+
 /* 系列搜索框 */
 .series-search { margin-bottom: 16px; }
 .series-search.hidden { display: none; }

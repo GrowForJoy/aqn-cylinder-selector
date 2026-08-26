@@ -72,6 +72,30 @@
     return collect([...new Set(gv)]);
   };
 
+  /* ---------- 客户型号反查（客户型号 → 我们型号） ---------- */
+  const CUSTOMER_INDEX = (() => {
+    const idx = {};
+    if (typeof CUSTOMER_MAP !== "undefined") {
+      Object.keys(CUSTOMER_MAP).forEach((gen) => {
+        const map = CUSTOMER_MAP[gen];
+        Object.keys(map).forEach((our) => {
+          (map[our] || []).forEach((c) => {
+            const norm = normModel(c);
+            if (!norm) return;
+            if (!idx[norm]) idx[norm] = [];
+            const rec = { our, gen };
+            if (!idx[norm].find((x) => x.our === our && x.gen === gen)) idx[norm].push(rec);
+          });
+        });
+      });
+    }
+    return idx;
+  })();
+  const findOurByCustomer = (input) => {
+    const norm = normModel(input || "");
+    return (norm && CUSTOMER_INDEX[norm]) ? CUSTOMER_INDEX[norm].slice() : [];
+  };
+
   /* ---------- 核心解析 ---------- */
   function parseModel(input) {
     const s = (input || "").replace(/\s+/g, "");
@@ -195,6 +219,7 @@
   };
 
   window.__parseModel = parseModel;
+  window.__findOurByCustomer = findOurByCustomer;
   window.__parseLabels = {
     genLabel, wiringLabel, signalLabel, wireMethodLabel, metalLabel, seriesLabel, boreListLabel,
   };
