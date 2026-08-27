@@ -415,7 +415,7 @@ body {
   gap: 24px;
   align-items: flex-start;
 }
-.card__body > .options { flex: 1; min-width: 0; }
+.card__body > .options { flex: 1; min-width: 0; align-self: stretch; }
 
 /* 出线方式 / 接头材质 效果图 */
 .wire-preview {
@@ -772,8 +772,10 @@ body {
   .card__head h2 { font-size: 1.12rem; }
   .card__head p { font-size: .82rem; }
 
-  /* 选项：更紧凑的两列 */
+  /* 选项：弹性盒子，一行两个并铺满 */
   .options {
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
   }
   .option {
@@ -854,7 +856,7 @@ body {
 /* 超小屏（≤380px）进一步压缩 */
 @media (max-width: 380px) {
   .options { gap: 8px; }
-  .option { flex: 1 1 calc(50% - 4px); min-height: 50px; padding: 10px 6px; font-size: .86rem; }
+  .option { min-height: 50px; padding: 10px 6px; font-size: .86rem; }
   .option .option__sub { font-size: .6rem; }
   .brand__text h1 { font-size: .92rem; }
   .steps__label { font-size: .56rem; }

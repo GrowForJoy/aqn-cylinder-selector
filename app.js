@@ -34,6 +34,7 @@
   const resultGrid = $("#resultGrid");
   const btnCopy = $("#btnCopy");
   const btnRestart = $("#btnRestart");
+  const btnStepBack = $("#btnStepBack");
   const wirePreview = $("#wirePreview");
   const wirePreviewImg = $("#wirePreviewImg");
   const wirePreviewName = $("#wirePreviewName");
@@ -350,6 +351,12 @@
     pickedBar.classList.toggle("hidden", !items.length);
   }
 
+  // 关闭结果区并恢复选型区，保证两者互斥，避免整页空白
+  const closeResult = () => {
+    resultPanel.hidden = true;
+    selectorWrap.hidden = false;
+  };
+
   const gotoStep = (stepIdx) => {
     const steps = buildSteps();
     if (stepIdx < 0 || stepIdx >= steps.length) return;
@@ -357,7 +364,7 @@
     ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory"]
       .forEach((k) => { if (!keep.has(k)) state[k] = null; });
     cursor = stepIdx;
-    resultPanel.hidden = true;
+    closeResult();
     renderProgress(steps[stepIdx]);
     renderPicked();
     renderStep(stepIdx);
@@ -471,7 +478,7 @@
       // 标准/金属：只选中不前进，点「下一步」才完成选型
       renderProgress(key);
       renderStep(idx);
-      resultPanel.hidden = true;
+      closeResult();
     } else if (key === "wireMethod" || key === "generation") {
       if (isLast) {
         renderProgress(key);
@@ -480,7 +487,7 @@
       } else {
         renderProgress(key);
         renderStep(idx);
-        resultPanel.hidden = true;
+        closeResult();
       }
     } else if (isLast) {
       // 最后一步：选完即出结果
@@ -492,7 +499,7 @@
       cursor = idx + 1;
       renderProgress(steps[cursor]);
       renderStep(cursor);
-      resultPanel.hidden = true;
+      closeResult();
     }
   }
 
@@ -777,11 +784,20 @@
     customerIdx = 0;
     lastR = null;
     cursor = 0;
-    resultPanel.hidden = true;
+    closeResult();
     selectorWrap.hidden = false;  // 重新选型时重新显示选型区域
     renderProgress("series");
     renderPicked();
     renderStep(0);
+  });
+
+  /* ---------- 结果页“上一步”：回到选型流程最后一步，保留已选值 ---------- */
+  btnStepBack.addEventListener("click", () => {
+    track("按钮", "上一步(结果回退)");
+    const s = buildSteps();
+    const last = s[s.length - 1];
+    // metal 步骤需点击「下一步」才完成，可直接回到它；其它点选即完成的步骤回到上一步。
+    gotoStep(last === "metal" ? s.length - 1 : Math.max(0, s.length - 2));
   });
 
   /* ---------- 上一步 ---------- */
@@ -802,7 +818,7 @@
     const s = buildSteps();
     renderProgress(s[cursor]);
     renderStep(cursor);
-    resultPanel.hidden = true;
+    closeResult();
   });
 
   /* ---------- 下一步（通用：wireMethod / metal 等步骤） ---------- */
@@ -817,7 +833,7 @@
     cursor++;
     renderProgress(steps[cursor]);
     renderStep(cursor);
-    resultPanel.hidden = true;
+    closeResult();
   });
 
   /* ---------- 初始化 ---------- */
