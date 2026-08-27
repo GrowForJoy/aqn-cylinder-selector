@@ -44,6 +44,7 @@
   const result3dEmpty = $("#result3dEmpty");
   const previewMv = $("#previewMv");
   const result3dDl = $("#result3dDl");
+  const selectorWrap = $("#selectorWrap");
 
   /* ---------- 工具 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
@@ -564,7 +565,7 @@
     if (r.counterpartOld) {
       rows.push(["对应标准型型号", r.counterpartOld.configuredCode]);
     }
-    rows.push(["客户型号", currentCustomer()]);
+    rows.push(["覆盖客户型号", currentCustomer()]);
     resultGrid.innerHTML = rows
       .map(([dt, dd]) => `<div><dt>${dt}</dt><dd>${dd}</dd></div>`)
       .join("");
@@ -703,6 +704,7 @@
     const r = buildResult();
     lastR = r;
     resultPanel.hidden = false;
+    selectorWrap.hidden = true;   // 选型完成后隐藏选型区域
     modelOutput.textContent = r.configuredCode;
     track("选型", "完成", r.configuredCode);
 
@@ -771,6 +773,7 @@
     lastR = null;
     cursor = 0;
     resultPanel.hidden = true;
+    selectorWrap.hidden = false;  // 重新选型时重新显示选型区域
     renderProgress("series");
     renderPicked();
     renderStep(0);
