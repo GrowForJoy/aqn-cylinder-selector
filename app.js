@@ -84,8 +84,8 @@
   };
 
   const SERIES_DESC = {
-    TCM: "三轴气缸", TCL: "三轴气缸", QCK: "回转夹紧气缸",
-    "ACQ/SDA": "薄壁气缸", MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
+    TCM: "三轴气缸B07", TCL: "三轴气缸B07", QCK: "回转夹紧气缸",
+    "ACQ/SDA": "薄壁气缸B02", MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
     HLQ: "双轴滑台气缸", HLS: "双轴滑台气缸",
     JSI: "标准气缸", SAI: "标准气缸", "BE/BSE": "标准气缸",
     SC: "拉杆气缸", BSC: "拉杆气缸", SCJ: "拉杆气缸",
@@ -256,7 +256,7 @@
       signal:     ["04", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
       generation: ["05", "选择标准型 / 增强型", "标准型对应 AN-1xx 系列开关，增强型对应 AN-A6x 系列开关。"],
       model:      ["06", "选择开关型号", "请确认所需的实际开关型号。"],
-      wireMethod: ["07", "选择出线方式", "请选择出线方式：M12QD 系列接头或直接出线。"],
+      wireMethod: ["07", "选择出线方式", "请选择出线方式：M12QD 系列接头或直接出线,请慎重选择。"],
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
       metal:      ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory:  ["09", "选择附件", "可选配安装附件"],
@@ -430,10 +430,11 @@
       } else {
         wirePreview.classList.add("hidden");
       }
-      // 下一步按钮（wireMethod 步骤一定有；metal/generation 步骤若后面还有步骤则显示）
+      // 下一步按钮（wireMethod 步骤一定有；metal 一律显示「下一步」确认，
+      // generation 若后面还有步骤则显示）
       const steps = buildSteps();
       const idxCur = steps.indexOf(key);
-      const hasNext = idxCur >= 0 && idxCur < steps.length - 1;
+      const hasNext = key === "metal" || (idxCur >= 0 && idxCur < steps.length - 1);
       btnNext.classList.toggle("hidden", !curVal || !hasNext);
       const hintKey = key === "wireMethod" ? "出线方式"
         : key === "metal" ? "接头材质" : "标准型 / 增强型";
@@ -446,7 +447,7 @@
       footHint.textContent = "点选选项即进入下一步";
     }
 
-    if (isLast && filled) showResult();
+    if (isLast && filled && key !== "metal") showResult();
   }
 
   const isSelected = (key, opt) => {
@@ -465,14 +466,17 @@
     const isLast = idx === steps.length - 1;
 
     renderPicked();
-    if (key === "wireMethod" || key === "metal" || key === "generation") {
+    if (key === "metal") {
+      // 标准/金属：只选中不前进，点「下一步」才完成选型
+      renderProgress(key);
+      renderStep(idx);
+      resultPanel.hidden = true;
+    } else if (key === "wireMethod" || key === "generation") {
       if (isLast) {
-        // 有效果图且是最后一步：选中后直接出结果
         renderProgress(key);
         renderStep(idx);
         showResult();
       } else {
-        // 有效果图且不是最后一步：不自动前进，点「下一步」才走
         renderProgress(key);
         renderStep(idx);
         resultPanel.hidden = true;
@@ -804,7 +808,11 @@
   btnNext.addEventListener("click", () => {
     track("按钮", "下一步");
     const steps = buildSteps();
-    if (cursor >= steps.length - 1) return;
+    if (cursor >= steps.length - 1) {
+      // 已是最后一步：仅标准/金属步骤在此确认提交结果
+      if (steps[cursor] === "metal") showResult();
+      return;
+    }
     cursor++;
     renderProgress(steps[cursor]);
     renderStep(cursor);
