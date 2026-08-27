@@ -201,7 +201,8 @@
         };
         return map[m] || "";
       }
-      let base = model.replace(/-[SNP]$/, "");
+      // 三线信号后缀(S/N/P)不区分图片：AN-A6G-S → AN-A6G；AN-A6G-S-D → AN-A6G-D
+      let base = model.replace(/-[SNP](?:-D)?$/, (m) => (m.endsWith("-D") ? "-D" : ""));
       if (base === "AN-A6BG") base = "AN-A6G"; // 无独立图片，借用相近的 A6G
       return `Image/${base}.png`;
     }
