@@ -236,7 +236,14 @@
   });
 
   // build rail
-  if (MODELS_3D.length === 0) {
+  const params = new URLSearchParams(location.search);
+  const singleOnly = params.get('single') === '1';   // 限定只查看选中型号
+  if (singleOnly) {
+    // 锁定：只加载 ?m= 指定型号，隐藏切换栏
+    const theM = MODELS_3D.find((m) => m.base === params.get('m')) || MODELS_3D[0];
+    if (theM) loadModel(MODELS_3D.indexOf(theM));
+    document.querySelector('.rail').style.display = 'none';
+  } else if (MODELS_3D.length === 0) {
     rail.innerHTML = '<div class="card empty"><span class="dot"></span><div class="name">暂无模型</div><div class="file">将 .glb 放入 3D 目录后在 models3d.js 中登记</div></div>';
   } else {
     MODELS_3D.forEach((m, i) => {
@@ -246,7 +253,7 @@
       c.addEventListener('click', () => loadModel(i));
       rail.appendChild(c);
     });
-    const paramM = new URLSearchParams(location.search).get('m');
+    const paramM = params.get('m');
     let startIdx = 0;
     if (paramM) {
       const found = MODELS_3D.findIndex((m) => m.base === paramM);

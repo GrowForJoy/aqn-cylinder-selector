@@ -685,7 +685,7 @@
     if (m && previewMv) {
       result3dEmpty.hidden = true;
       result3dLink.hidden = false;
-      result3dLink.href = "3d-viewer.html?m=" + encodeURIComponent(m.base);
+      result3dLink.href = "3d-viewer.html?m=" + encodeURIComponent(m.base) + "&single=1";
       previewMv.setAttribute("src", m.file);
       if (result3dDl) {
         result3dDl.hidden = false;
