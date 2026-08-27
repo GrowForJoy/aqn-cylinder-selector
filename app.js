@@ -414,21 +414,22 @@
       const curVal = state[key];
       const src = previewImgSrc(key, curVal);
       const hasImg = !!src;
+      const titleKey = key === "wireMethod" ? "出线方式效果图"
+        : key === "metal" ? "接头材质效果图" : "开关型号效果图";
+      // 预览区始终显示：未选择时显示占位提示
+      wirePreview.classList.remove("hidden");
+      wirePreview.querySelector(".wire-preview__title").textContent = titleKey;
       if (curVal && hasImg) {
-        wirePreview.classList.remove("hidden");
         wirePreviewImg.innerHTML = previewHtml(key, curVal);
-        const meta = {
-          wireMethod: ["出线方式效果图", labelOf("wireMethod", curVal)],
-          metal:      ["接头材质效果图", curVal === "metal" ? "金属接头" : "标准接头"],
-          generation: ["开关型号效果图", labelOf("generation", curVal)],
-        };
-        const [title, label] = meta[key];
-        wirePreview.querySelector(".wire-preview__title").textContent = title;
+        const label = key === "wireMethod" ? labelOf("wireMethod", curVal)
+          : key === "metal" ? (curVal === "metal" ? "金属接头" : "标准接头")
+          : labelOf("generation", curVal);
         wirePreviewName.textContent = label + "（点击放大）";
         const pic = wirePreviewImg.querySelector(".wire-preview__pic");
         if (pic) pic.addEventListener("click", () => openLightbox(src));
       } else {
-        wirePreview.classList.add("hidden");
+        wirePreviewImg.innerHTML = '<div class="wire-preview__ph">请选择后查看效果图</div>';
+        wirePreviewName.innerHTML = "&nbsp;";
       }
       // 下一步按钮（wireMethod 步骤一定有；metal 一律显示「下一步」确认，
       // generation 若后面还有步骤则显示）

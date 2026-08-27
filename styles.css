@@ -442,6 +442,11 @@ body {
   overflow: hidden;
 }
 .wire-preview__img svg { width: 100%; height: 100%; }
+.wire-preview__ph {
+  color: var(--ink-faint, #9aa0ae);
+  font-size: .84rem;
+  letter-spacing: .04em;
+}
 .wire-preview__pic {
   width: 100%;
   height: 100%;
