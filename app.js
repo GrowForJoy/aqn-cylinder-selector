@@ -179,8 +179,8 @@
     }
     if (step === "metal") {
       const map = {
-        "normal": "Image/connector-standard.png",
-        "metal": "Image/connector-metal.png",
+        "normal": "Image/connector-standard.jpg",
+        "metal": "Image/connector-metal.jpg",
       };
       return map[value] || "";
     }
@@ -195,18 +195,22 @@
         : (pool.two && pool.two[0]);
       if (!model) return "";
       if (value === "old") {
+        const hasD = /-D$/.test(model);
         const m = model.replace(/-D$/, "").replace(/-[SNP]$/, "").replace(/(\d)(S|N|P)$/, "$1");
         const map = {
-          "AN-101": "Image/101G.png",
-          "AN-102": "Image/102G.png",
-          "AN-105": "Image/105G.png",
+          "AN-101": "Image/101G.jpg",
+          "AN-102": "Image/102G.jpg",
+          "AN-105": "Image/105G.jpg",
         };
-        return map[m] || "";
+        if (!map[m]) return "";
+        // 102 带 D（AN-102-D）显示带 D 的专属效果图
+        if (hasD && m === "AN-102") return "Image/102G-D.jpg";
+        return map[m];
       }
       // 三线信号后缀(S/N/P)不区分图片：AN-A6G-S → AN-A6G；AN-A6G-S-D → AN-A6G-D
       let base = model.replace(/-[SNP](?:-D)?$/, (m) => (m.endsWith("-D") ? "-D" : ""));
       if (base === "AN-A6BG") base = "AN-A6G"; // 无独立图片，借用相近的 A6G
-      return `Image/${base}.png`;
+      return `Image/${base}.jpg`;
     }
     return "";
   };
