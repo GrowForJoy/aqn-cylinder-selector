@@ -27,10 +27,10 @@ const GROUPS = [
       pnp:   ["AN-102P"],
     },
     new: {
-      two:   ["AN-A6G-D"],
-      auto:  ["AN-A6G-S-D"],
-      npn:   ["AN-A6G-N-D"],
-      pnp:   ["AN-A6G-P-D"],
+      two:   ["AN-A6G"],
+      auto:  ["AN-A6G-S"],
+      npn:   ["AN-A6G-N"],
+      pnp:   ["AN-A6G-P"],
     },
     /* 安装附件：range=[min缸径,max缸径]，old/new为对应开关款式的附件型号，required=true表示必须选 */
     accessories: [{ range: [32, 80], old: "PG-8", new: "P8", required: false }],
