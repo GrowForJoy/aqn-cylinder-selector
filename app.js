@@ -87,10 +87,15 @@
   const SERIES_DESC = {
     TCM: "三轴气缸B07", TCL: "三轴气缸B07", QCK: "回转夹紧气缸B02",
     "ACQ/SDA": "薄壁气缸B02", MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
-    HLQ: "双轴滑台气缸", HLS: "双轴滑台气缸",
+    HLQ: "双轴滑台气缸/气动手指", HLS: "双轴滑台气缸",
     JSI: "标准气缸", SAI: "标准气缸", "BE/BSE": "标准气缸",
     SC: "拉杆气缸", BSC: "拉杆气缸", SCJ: "拉杆气缸",
     BP: "笔型气缸", TN: "双轴气缸", TR: "双轴气缸",
+  };
+
+  /* 系列按钮显示名（可选，未配置时用系列名本身） */
+  const SERIES_LABEL = {
+    HLQ: "HLQ/HF",
   };
 
   const stepOptions = (key) => {
@@ -98,7 +103,7 @@
       case "series":
         return GROUPS.reduce((acc, g) => {
           g.series.forEach((snm) => acc.push({
-            value: snm, sub: SERIES_DESC[snm] || "标准气缸", group: g,
+            value: snm, label: SERIES_LABEL[snm] || snm, sub: SERIES_DESC[snm] || "标准气缸", group: g,
           }));
           return acc;
         }, []);
