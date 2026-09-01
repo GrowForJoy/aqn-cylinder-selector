@@ -337,7 +337,7 @@
     const push = (tag, val, step) => {
       if (val !== null && val !== undefined) items.push({ tag, val: String(val), step });
     };
-    push("系列", state.seriesName, "series");
+    push("系列", labelOf("series", state.seriesName), "series");
     push("缸径", state.bore != null ? `${state.bore}mm` : null, "bore");
     push("版本", state.generation ? labelOf("generation", state.generation) : null, "generation");
     push("接线", state.wiring ? labelOf("wiring", state.wiring) : null, "wiring");
