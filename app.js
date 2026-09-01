@@ -168,6 +168,7 @@
       case "signal":     return val === "auto" ? "自动识别" : val.toUpperCase();
       case "wireMethod": return val === "direct" ? "直接出线"
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
+      case "series":     return SERIES_LABEL[val] || val;
       default:           return val;
     }
   };
