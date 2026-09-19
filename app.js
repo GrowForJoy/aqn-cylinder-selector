@@ -158,8 +158,8 @@
       }
       case "stroke":
         return [
-          { value: "lt20", label: "小于20", sub: "行程<20mm / 型号为 D2" },
-          { value: "gte20", label: "大于等于20", sub: "行程≥20mm / 型号保持 D" },
+          { value: "lt20", label: "小于20", sub: "行程<20mm / 型号为 D2", bold: true },
+          { value: "gte20", label: "大于等于20", sub: "行程≥20mm / 型号保持 D", bold: true },
         ];
       default:
         return [];
@@ -277,7 +277,7 @@
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
       metal:      ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory:  ["09", "选择附件", "可选配安装附件"],
-      stroke:     ["05B", "选择真实行程", "行程小于20mm 型号为 D2；大于等于20mm 保持 D。"],
+      stroke:     ["05B", "请选择气缸实际使用行程", "气缸实际使用行程小于20mm 型号为 D2；大于等于20mm 保持 D。"],
     };
     return meta[key] || ["--", key, ""];
   };
@@ -428,7 +428,7 @@
       btn.appendChild(lbl);
       if (opt.sub) {
         const sub = document.createElement("span");
-        sub.className = "option__sub";
+        sub.className = "option__sub" + (opt.bold ? " option__sub--bold" : "");
         sub.textContent = opt.sub;
         btn.appendChild(sub);
       }

@@ -402,6 +402,11 @@ body {
   font-family: var(--font-display);
   letter-spacing: .08em;
 }
+.option .option__sub--bold {
+  font-weight: 800;
+  color: var(--ink-dim);
+  letter-spacing: .02em;
+}
 .option small.opt--flag {
   position: absolute;
   top: 6px; right: 6px;
