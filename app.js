@@ -158,8 +158,8 @@
       }
       case "stroke":
         return [
-          { value: "lt20", label: "小于20", sub: "行程<20mm / 型号为 D2", bold: true },
-          { value: "gte20", label: "大于等于20", sub: "行程≥20mm / 型号保持 D", bold: true },
+          { value: "lt15", label: "小于15", sub: "行程<15mm / 型号为 D2", bold: true },
+          { value: "gte15", label: "大于等于15", sub: "行程≥15mm / 型号保持 D", bold: true },
         ];
       default:
         return [];
@@ -174,7 +174,7 @@
       case "wireMethod": return val === "direct" ? "直接出线"
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
       case "series":     return SERIES_LABEL[val] || val;
-      case "stroke":     return val === "gte20" ? "大于等于20" : "小于20";
+      case "stroke":     return val === "gte15" ? "大于等于15" : "小于15";
       default:           return val;
     }
   };
@@ -277,13 +277,13 @@
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
       metal:      ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory:  ["09", "选择附件", "可选配安装附件"],
-      stroke:     ["05B", "请选择气缸实际使用行程", "气缸实际使用行程小于20mm 型号为 D2；大于等于20mm 保持 D。"],
+      stroke:     ["05B", "请选择气缸实际使用行程", "气缸实际使用行程小于15mm 型号为 D2；大于等于15mm 保持 D。"],
     };
     return meta[key] || ["--", key, ""];
   };
 
   /* ---------- 动态步骤 ---------- */
-  /* 需要“真实行程”步骤的系列（选≥20mm 时型号由 -D 变为 -D2） */
+  /* 需要“真实行程”步骤的系列（选 <15mm 时型号由 -D 变为 -D2） */
   const STROKE_SERIES = ["ACQ/SDA", "TCM", "TCL"];
   const strokeEnabled = () =>
     !!state.seriesName && STROKE_SERIES.includes(state.seriesName) && !!state.generation;
@@ -633,9 +633,9 @@
   function buildResult() {
     const cands = candidateModels();
     const base0 = cands && cands.length ? cands[0] : null;
-    // 真实行程 <20mm 时，型号末尾 -D 变为 -D2；≥20mm 保持 -D（仅 ACQ/SDA、TCM、TCL 生效）
+    // 真实行程 <15mm 时，型号末尾 -D 变为 -D2；≥15mm 保持 -D（仅 ACQ/SDA、TCM、TCL 生效）
     const applyStroke = (code) => {
-      if (!strokeEnabled() || state.stroke !== "lt20" || !code) return code;
+      if (!strokeEnabled() || state.stroke !== "lt15" || !code) return code;
       return code.replace(/-(D2?)$/, "-D2");
     };
     const base = applyStroke(base0);
