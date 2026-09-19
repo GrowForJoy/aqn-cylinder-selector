@@ -156,6 +156,11 @@
           sub: a === "无（仅开关）" ? "默认" : "安装附件",
         }));
       }
+      case "stroke":
+        return [
+          { value: "lt20", label: "小于20", sub: "行程<20mm / 型号为 D2" },
+          { value: "gte20", label: "大于等于20", sub: "行程≥20mm / 型号保持 D" },
+        ];
       default:
         return [];
     }
@@ -169,6 +174,7 @@
       case "wireMethod": return val === "direct" ? "直接出线"
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
       case "series":     return SERIES_LABEL[val] || val;
+      case "stroke":     return val === "gte20" ? "大于等于20" : "小于20";
       default:           return val;
     }
   };
@@ -201,20 +207,20 @@
         : (pool.two && pool.two[0]);
       if (!model) return "";
       if (value === "old") {
-        const hasD = /-D$/.test(model);
-        const m = model.replace(/-D$/, "").replace(/-[SNP]$/, "").replace(/(\d)(S|N|P)$/, "$1");
+        const hasD = /-(D2?)$/.test(model);
+        const m = model.replace(/-(D2?)$/, "").replace(/-[SNP]$/, "").replace(/(\d)(S|N|P)$/, "$1");
         const map = {
           "AN-101": "Image/101G.jpg",
           "AN-102": "Image/102G.jpg",
           "AN-105": "Image/105G.jpg",
         };
         if (!map[m]) return "";
-        // 102 带 D（AN-102-D）显示带 D 的专属效果图
+        // 102 带 D / D2（AN-102-D / AN-102-D2）显示带 D 的专属效果图
         if (hasD && m === "AN-102") return "Image/102G-D.jpg";
         return map[m];
       }
-      // 三线信号后缀(S/N/P)不区分图片：AN-A6G-S → AN-A6G；AN-A6G-S-D → AN-A6G-D
-      let base = model.replace(/-[SNP](?:-D)?$/, (m) => (m.endsWith("-D") ? "-D" : ""));
+      // 三线信号后缀(S/N/P)不区分图片；保留 -D/-D2 归一到 D：AN-A6G-S → AN-A6G；AN-A6G-S-D2 → AN-A6G-D
+      let base = model.replace(/-(S|N|P)(?:-D2?)?$/, (m) => (m.includes("-D") ? "-D" : ""));
       if (base === "AN-A6BG") base = "AN-A6G"; // 无独立图片，借用相近的 A6G
       return `Image/${base}.jpg`;
     }
@@ -271,15 +277,22 @@
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
       metal:      ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory:  ["09", "选择附件", "可选配安装附件"],
+      stroke:     ["05B", "选择真实行程", "行程小于20mm 型号为 D2；大于等于20mm 保持 D（如选小于20：AN-102N-D → AN-102N-D2）。"],
     };
     return meta[key] || ["--", key, ""];
   };
 
   /* ---------- 动态步骤 ---------- */
+  /* 需要“真实行程”步骤的系列（选≥20mm 时型号由 -D 变为 -D2） */
+  const STROKE_SERIES = ["ACQ/SDA", "TCM", "TCL"];
+  const strokeEnabled = () =>
+    !!state.seriesName && STROKE_SERIES.includes(state.seriesName) && !!state.generation;
+
   const buildSteps = () => {
     const steps = ["series", "bore", "wiring"];
     if (state.wiring === "three") steps.push("signal");
     steps.push("generation");
+    if (strokeEnabled()) steps.push("stroke");
     steps.push("wireMethod");
     if (state.wireMethod === "direct") steps.push("cable");
     else if (state.wireMethod) steps.push("metal");
@@ -302,7 +315,7 @@
       state.seriesName = val.value;
       state.bore = null; state.generation = null; state.wiring = null;
       state.signal = null; state.model = null; state.wireMethod = null;
-      state.accessory = null;
+      state.accessory = null; state.stroke = null;
       return;
     }
     if (val === null) {
@@ -340,6 +353,7 @@
     push("系列", labelOf("series", state.seriesName), "series");
     push("缸径", state.bore != null ? `${state.bore}mm` : null, "bore");
     push("版本", state.generation ? labelOf("generation", state.generation) : null, "generation");
+    push("行程", strokeEnabled() && state.stroke ? labelOf("stroke", state.stroke) : null, "stroke");
     push("接线", state.wiring ? labelOf("wiring", state.wiring) : null, "wiring");
     push("信号", signalDisplay(), "signal");
 
@@ -371,7 +385,7 @@
     const steps = buildSteps();
     if (stepIdx < 0 || stepIdx >= steps.length) return;
     const keep = new Set(steps.slice(0, stepIdx + 1));
-    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory"]
+    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory", "stroke"]
       .forEach((k) => { if (!keep.has(k)) state[k] = null; });
     cursor = stepIdx;
     closeResult();
@@ -618,7 +632,13 @@
 
   function buildResult() {
     const cands = candidateModels();
-    const base = cands && cands.length ? cands[0] : null;
+    const base0 = cands && cands.length ? cands[0] : null;
+    // 真实行程 <20mm 时，型号末尾 -D 变为 -D2；≥20mm 保持 -D（仅 ACQ/SDA、TCM、TCL 生效）
+    const applyStroke = (code) => {
+      if (!strokeEnabled() || state.stroke !== "lt20" || !code) return code;
+      return code.replace(/-(D2?)$/, "-D2");
+    };
+    const base = applyStroke(base0);
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
 
@@ -669,7 +689,8 @@
     let counterpartOld = null;
     if (state.generation === "new" && state.group) {
       const oldCands = state.group.old[variantKey()] || [];
-      const oldBase = oldCands.length ? oldCands[0] : null;
+      const oldBase0 = oldCands.length ? oldCands[0] : null;
+      const oldBase = applyStroke(oldBase0);
       if (oldBase) {
         counterpartOld = {
           switchModel: oldBase,
@@ -690,7 +711,7 @@
   const switchBase = (sm) => {
     if (!sm) return null;
     return sm
-      .replace(/-D$/, "")             // 版本后缀 -D（如 AN-102-D）
+      .replace(/-(D2?)$/, "")            // 版本后缀 -D / -D2（如 AN-102-D、AN-102-D2）
       .replace(/-(S|N|P)$/, "")      // 连字符信号后缀 -S/-N/-P（如 AN-105-S）
       .replace(/(\d)(S|N|P)$/, "$1"); // 紧贴数字的信号后缀（如 AN-101S）
   };
