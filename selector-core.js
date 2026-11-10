@@ -12,9 +12,6 @@
     MCK: "焊接夹紧气缸", "B02-JSI": "标准气缸", AQK: "销钉气缸",
   };
 
-  /* 需要“真实行程”步骤的系列（选 <15mm 时型号由 -D 变为 -D2） */
-  const STROKE_SERIES = ["B02-ACQ", "B02-TCM/B07-TCM"];
-
   /* ---------- 基础取值 ---------- */
   const rangeBores = (g) => BORE_STANDARD.filter((b) => b >= g.boreMin && b <= g.boreMax);
 
@@ -42,9 +39,6 @@
     const options = required ? models : ["无（仅开关）", ...models];
     return { options, required, hasAccessory: true };
   };
-
-  const strokeEnabled = (state) =>
-    !!state.seriesName && STROKE_SERIES.includes(state.seriesName) && !!state.generation;
 
   /* ---------- 选项 ---------- */
   const stepOptions = (key, state) => {
@@ -101,11 +95,6 @@
           sub: a === "无（仅开关）" ? "默认" : "安装附件",
         }));
       }
-      case "stroke":
-        return [
-          { value: "lt15", label: "小于15", sub: "行程<15mm / 型号为 D2", bold: true },
-          { value: "gte15", label: "大于等于15", sub: "行程≥15mm / 型号保持 D", bold: true },
-        ];
       default:
         return [];
     }
@@ -119,7 +108,6 @@
       case "wireMethod": return val === "direct" ? "直接出线"
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
       case "series": return val;
-      case "stroke": return val === "gte15" ? "大于等于15" : "小于15";
       default: return val;
     }
   };
@@ -148,7 +136,6 @@
       cable: ["08", "选择出线米数", "直接出线需选择线缆长度。"],
       metal: ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory: ["09", "选择附件", "可选配安装附件"],
-      stroke: ["05B", "请选择气缸实际使用行程", "气缸实际使用行程小于15mm 型号为 D2；大于等于15mm 保持 D。"],
     };
     return meta[key] || ["--", key, ""];
   };
@@ -158,7 +145,6 @@
     const steps = ["series", "bore", "wiring"];
     if (state.wiring === "three") steps.push("signal");
     steps.push("generation");
-    if (strokeEnabled(state)) steps.push("stroke");
     steps.push("wireMethod");
     if (state.wireMethod === "direct") steps.push("cable");
     else if (state.wireMethod) steps.push("metal");
@@ -215,15 +201,9 @@
   };
 
   /* ---------- 结果 ---------- */
-  const applyStroke = (state, code) => {
-    if (!strokeEnabled(state) || state.stroke !== "lt15" || !code) return code;
-    return code.replace(/-(D2?)$/, "-D2");
-  };
-
   const buildResult = (state) => {
     const cands = candidateModels(state);
-    const base0 = cands && cands.length ? cands[0] : null;
-    const base = applyStroke(state, base0);
+    const base = cands && cands.length ? cands[0] : null;
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
 
@@ -246,7 +226,7 @@
     let counterpartOld = null;
     if (state.generation === "new" && state.group) {
       const oldCands = state.group.old[variantKey(state)] || [];
-      const oldBase = applyStroke(state, oldCands.length ? oldCands[0] : null);
+      const oldBase = oldCands.length ? oldCands[0] : null;
       if (oldBase) {
         counterpartOld = {
           switchModel: oldBase,
@@ -320,8 +300,8 @@
   };
 
   window.__selector = {
-    SERIES_DESC, STROKE_SERIES,
-    rangeBores, variantKey, candidateModels, accessoryOptions, strokeEnabled,
+    SERIES_DESC,
+    rangeBores, variantKey, candidateModels, accessoryOptions,
     stepOptions, labelOf, signalDisplay, wireDisplay, stepMeta,
     buildSteps, isFilled, previewImgSrc,
     buildResult, switchBase,

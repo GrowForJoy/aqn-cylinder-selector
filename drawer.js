@@ -50,7 +50,7 @@
       state.seriesName = val.value;
       state.bore = null; state.generation = null; state.wiring = null;
       state.signal = null; state.model = null; state.wireMethod = null;
-      state.accessory = null; state.stroke = null;
+      state.accessory = null;
       return;
     }
     if (val === null) {
@@ -79,7 +79,6 @@
       case "generation": return state.generation ? S.labelOf("generation", state.generation) : "";
       case "wiring": return state.wiring ? S.labelOf("wiring", state.wiring) : "";
       case "signal": return state.signal ? S.labelOf("signal", state.signal) : "";
-      case "stroke": return state.stroke ? S.labelOf("stroke", state.stroke) : "";
       case "wireMethod": return state.wireMethod ? S.labelOf("wireMethod", state.wireMethod) : "";
       case "cable": return state.cable ? `${state.cable}m` : "";
       case "metal": return state.metal ? (state.metal === "metal" ? "金属" : "标准") : "";
@@ -91,7 +90,7 @@
   /* 清除 idx 之后所有步骤的取值（与主站“回到该步骤”一致） */
   const clearAfter = (idx, steps) => {
     const keep = new Set(steps.slice(0, idx + 1));
-    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory", "stroke"]
+    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory"]
       .forEach((k) => { if (!keep.has(k)) state[k] = null; });
   };
 
@@ -306,7 +305,6 @@
     push("系列", state.seriesName ? S.labelOf("series", state.seriesName) : null, "series");
     push("缸径", state.bore != null ? `${state.bore}mm` : null, "bore");
     push("版本", state.generation ? S.labelOf("generation", state.generation) : null, "generation");
-    push("行程", S.strokeEnabled(state) && state.stroke ? S.labelOf("stroke", state.stroke) : null, "stroke");
     push("接线", state.wiring ? S.labelOf("wiring", state.wiring) : null, "wiring");
     push("信号", S.signalDisplay(state), "signal");
     push("出线", S.wireDisplay(state), "wireMethod");

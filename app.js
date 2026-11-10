@@ -147,11 +147,6 @@
           sub: a === "无（仅开关）" ? "默认" : "安装附件",
         }));
       }
-      case "stroke":
-        return [
-          { value: "lt15", label: "小于15", sub: "行程<15mm / 型号为 D2", bold: true },
-          { value: "gte15", label: "大于等于15", sub: "行程≥15mm / 型号保持 D", bold: true },
-        ];
       default:
         return [];
     }
@@ -165,7 +160,6 @@
       case "wireMethod": return val === "direct" ? "直接出线"
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
       case "series":     return val;
-      case "stroke":     return val === "gte15" ? "大于等于15" : "小于15";
       default:           return val;
     }
   };
@@ -271,21 +265,15 @@
       cable:      ["08", "选择出线米数", "直接出线需选择线缆长度。"],
       metal:      ["08", "选择接头材质", "QD 接头请选择金属或标准材质。"],
       accessory:  ["09", "选择附件", "可选配安装附件"],
-      stroke:     ["05B", "请选择气缸实际使用行程", "气缸实际使用行程小于15mm 型号为 D2；大于等于15mm 保持 D。"],
     };
     return meta[key] || ["--", key, ""];
   };
 
 
-  const STROKE_SERIES = ["B02-ACQ", "B02-TCM/B07-TCM"];
-  const strokeEnabled = () =>
-    !!state.seriesName && STROKE_SERIES.includes(state.seriesName) && !!state.generation;
-
   const buildSteps = () => {
     const steps = ["series", "bore", "wiring"];
     if (state.wiring === "three") steps.push("signal");
     steps.push("generation");
-    if (strokeEnabled()) steps.push("stroke");
     steps.push("wireMethod");
     if (state.wireMethod === "direct") steps.push("cable");
     else if (state.wireMethod) steps.push("metal");
@@ -308,7 +296,7 @@
       state.seriesName = val.value;
       state.bore = null; state.generation = null; state.wiring = null;
       state.signal = null; state.model = null; state.wireMethod = null;
-      state.accessory = null; state.stroke = null;
+      state.accessory = null;
       return;
     }
     if (val === null) {
@@ -346,7 +334,6 @@
     push("系列", labelOf("series", state.seriesName), "series");
     push("缸径", state.bore != null ? `${state.bore}mm` : null, "bore");
     push("版本", state.generation ? labelOf("generation", state.generation) : null, "generation");
-    push("行程", strokeEnabled() && state.stroke ? labelOf("stroke", state.stroke) : null, "stroke");
     push("接线", state.wiring ? labelOf("wiring", state.wiring) : null, "wiring");
     push("信号", signalDisplay(), "signal");
 
@@ -377,7 +364,7 @@
     const steps = buildSteps();
     if (stepIdx < 0 || stepIdx >= steps.length) return;
     const keep = new Set(steps.slice(0, stepIdx + 1));
-    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory", "stroke"]
+    ["bore", "generation", "wiring", "signal", "model", "wireMethod", "metal", "cable", "accessory"]
       .forEach((k) => { if (!keep.has(k)) state[k] = null; });
     cursor = stepIdx;
     closeResult();
@@ -623,13 +610,7 @@
 
   function buildResult() {
     const cands = candidateModels();
-    const base0 = cands && cands.length ? cands[0] : null;
-    // 真实行程 <15mm 时，型号末尾 -D 变为 -D2；≥15mm 保持 -D（仅 B02-ACQ、B02-TCM/B07-TCM 生效）
-    const applyStroke = (code) => {
-      if (!strokeEnabled() || state.stroke !== "lt15" || !code) return code;
-      return code.replace(/-(D2?)$/, "-D2");
-    };
-    const base = applyStroke(base0);
+    const base = cands && cands.length ? cands[0] : null;
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
 
@@ -680,8 +661,7 @@
     let counterpartOld = null;
     if (state.generation === "new" && state.group) {
       const oldCands = state.group.old[variantKey()] || [];
-      const oldBase0 = oldCands.length ? oldCands[0] : null;
-      const oldBase = applyStroke(oldBase0);
+      const oldBase = oldCands.length ? oldCands[0] : null;
       if (oldBase) {
         counterpartOld = {
           switchModel: oldBase,
