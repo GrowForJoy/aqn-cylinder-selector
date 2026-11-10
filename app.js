@@ -102,8 +102,8 @@
         return rangeBores(state.group).map((b) => ({ value: b, sub: "mm" }));
       case "generation":
         return [
-          { value: "old", label: "标准型", sub: "AN-1xx" },
           { value: "new", label: "增强型", sub: "AN-A6x" },
+          { value: "old", label: "标准型", sub: "AN-1xx" },
         ];
       case "wiring":
         return [
