@@ -1,14 +1,15 @@
 // 标准缸径规格（可出现的所有缸径值）
 const BORE_STANDARD = [10, 12, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 140];
 const GROUPS = [
+  /* B02-ACQ：薄壁气缸 */
   {
-    series: ["ACQ/SDA", "TCM", "TCL", "QCK"],
-    boreMin: 25, boreMax: 80,
+    series: ["B02-ACQ"],
+    boreMin: 32, boreMax: 100,
     old: {
-      two:   ["AN-102-D"],
-      auto:  ["AN-102S-D"],
-      npn:   ["AN-102N-D"],
-      pnp:   ["AN-102P-D"],
+      two:   ["AN-103-D", "AN-102-D"],
+      auto:  ["AN-103-S-D", "AN-102-S-D"],
+      npn:   ["AN-103-N-D", "AN-102-N-D"],
+      pnp:   ["AN-103-P-D", "AN-102-P-D"],
     },
     new: {
       two:   ["AN-A6G-D"],
@@ -17,14 +18,48 @@ const GROUPS = [
       pnp:   ["AN-A6G-P-D"],
     },
   },
+  /* B02-TCM / B07-TCM：三轴气缸 */
+  {
+    series: ["B02-TCM/B07-TCM"],
+    boreMin: 32, boreMax: 63,
+    old: {
+      two:   ["AN-103-D", "AN-102-D"],
+      auto:  ["AN-103-S-D", "AN-102-S-D"],
+      npn:   ["AN-103-N-D", "AN-102-N-D"],
+      pnp:   ["AN-103-P-D", "AN-102-P-D"],
+    },
+    new: {
+      two:   ["AN-A6G-D"],
+      auto:  ["AN-A6G-S-D"],
+      npn:   ["AN-A6G-N-D"],
+      pnp:   ["AN-A6G-P-D"],
+    },
+  },
+  /* QCK：回转夹紧气缸 */
+  {
+    series: ["QCK"],
+    boreMin: 12, boreMax: 63,
+    old: {
+      two:   ["AN-103", "AN-102"],
+      auto:  ["AN-103-S", "AN-102-S"],
+      npn:   ["AN-103-N", "AN-102-N"],
+      pnp:   ["AN-103-P", "AN-102-P"],
+    },
+    new: {
+      two:   ["AN-A6G"],
+      auto:  ["AN-A6G-S"],
+      npn:   ["AN-A6G-N"],
+      pnp:   ["AN-A6G-P"],
+    },
+  },
   {
     series: ["MCK"],
-    boreMin: 32, boreMax: 80,
+    boreMin: 40, boreMax: 80,
     old: {
       two:   ["AN-102"],
-      auto:  ["AN-102S"],
-      npn:   ["AN-102N"],
-      pnp:   ["AN-102P"],
+      auto:  ["AN-103-S", "AN-102-S"],
+      npn:   ["AN-103-N", "AN-102-N"],
+      pnp:   ["AN-103-P", "AN-102-P"],
     },
     new: {
       two:   ["AN-A6G"],
@@ -33,43 +68,12 @@ const GROUPS = [
       pnp:   ["AN-A6G-P"],
     },
     /* 安装附件：range=[min缸径,max缸径]，old/new为对应开关款式的附件型号，required=true表示必须选 */
-    accessories: [{ range: [32, 80], old: "PG-8", new: "P8", required: false }],
+    accessories: [{ range: [40, 80], old: "PG-8", new: "P8", required: true }],
   },
+  /* B02-JSI：标准气缸 */
   {
-    series: ["AQK", "BAQK"],
-    boreMin: 50, boreMax: 80,
-    old: {
-      two:   ["AN-102"],
-      auto:  ["AN-102S"],
-      npn:   ["AN-102N"],
-      pnp:   ["AN-102P"],
-    },
-    new: {
-      two:   ["AN-A6G"],
-      auto:  ["AN-A6G-S"],
-      npn:   ["AN-A6G-N"],
-      pnp:   ["AN-A6G-P"],
-    },
-  },
-  {
-    series: ["HLQ", "HLS"],
-    boreMin: 20, boreMax: 32,
-    old: {
-      two:   ["AN-101"],
-      auto:  ["AN-101S"],
-      npn:   ["AN-101N"],
-      pnp:   ["AN-101P"],
-    },
-    new: {
-      two:   ["AN-A6H"],
-      auto:  ["AN-A6H-S"],
-      npn:   ["AN-A6H-N"],
-      pnp:   ["AN-A6H-P"],
-    },
-  },
-  {
-    series: ["JSI", "SAI", "BE/BSE"],
-    boreMin: 32, boreMax: 100,
+    series: ["B02-JSI"],
+    boreMin: 40, boreMax: 100,
     old: {
       two:   ["AN-105"],
       auto:  ["AN-105-S"],
@@ -83,80 +87,15 @@ const GROUPS = [
       pnp:   ["AN-A6E-P"],
     },
   },
+  /* AQK：销钉气缸 */
   {
-    series: ["SC", "BSC", "SCJ"],
-    boreMin: 32, boreMax: 100,
+    series: ["AQK"],
+    boreMin: 50, boreMax: 50,
     old: {
       two:   ["AN-102"],
-      auto:  ["AN-102S"],
-      npn:   ["AN-102N"],
-      pnp:   ["AN-102P"],
-    },
-    new: {
-      two:   ["AN-A6G"],
-      auto:  ["AN-A6G-S"],
-      npn:   ["AN-A6G-N"],
-      pnp:   ["AN-A6G-P"],
-    },
-    /* 安装附件（贵重 SC/SCD/SCJ 共用）：32-50→PG-6，63→PG-8，80-100→PG-10 */
-    accessories: [
-      { range: [32, 50], old: "PG-6", new: "P6", required: false },
-      { range: [63, 63], old: "PG-8", new: "P8", required: false },
-      { range: [80, 100], old: "PG-10", new: "P10", required: false },
-    ],
-  },
-  {
-    series: ["PB"],
-    boreMin: 10, boreMax: 40,
-    old: {
-      two:   ["AN-102"],
-      auto:  ["AN-102S"],
-      npn:   ["AN-102N"],
-      pnp:   ["AN-102P"],
-    },
-    new: {
-      two:   ["AN-A6BG"],
-      auto:  ["AN-A6BG-S"],
-      npn:   ["AN-A6BG-N"],
-      pnp:   ["AN-A6BG-P"],
-    },
-    /* 安装附件（BG 系列必须选）：按每个缸径一一对应 */
-    accessories: [
-      { range: [10, 10], old: "BG.S10", new: "S.10", required: true },
-      { range: [12, 12], old: "BG.S12", new: "S.12", required: true },
-      { range: [16, 16], old: "BG.S16", new: "S.16", required: true },
-      { range: [20, 20], old: "BG.S20", new: "S.20", required: true },
-      { range: [25, 25], old: "BG.S25", new: "S.25", required: true },
-      { range: [32, 32], old: "BG.S32", new: "S.32", required: true },
-      { range: [40, 40], old: "BG.S40", new: "S.40", required: true },
-    ],
-  },
-  {
-    series: ["TN"],
-    boreMin: 10, boreMax: 40,
-    old: {
-      two:   ["AN-101"],
-      auto:  ["AN-101S"],
-      npn:   ["AN-101N"],
-      pnp:   ["AN-101P"],
-    },
-    new: {
-      two:   ["AN-A6H"],
-      auto:  ["AN-A6H-S"],
-      npn:   ["AN-A6H-N"],
-      pnp:   ["AN-A6H-P"],
-    },
-    /* 安装附件（TN 必须选）：整缸径区间统一用 AT11 */
-    accessories: [{ range: [10, 40], old: "AT11", new: "AT11", required: true }],
-  },
-  {
-    series: ["TR"],
-    boreMin: 10, boreMax: 40,
-    old: {
-      two:   ["AN-102"],
-      auto:  ["AN-102S"],
-      npn:   ["AN-102N"],
-      pnp:   ["AN-102P"],
+      auto:  ["AN-102-S"],
+      npn:   ["AN-102-N"],
+      pnp:   ["AN-102-P"],
     },
     new: {
       two:   ["AN-A6G"],

@@ -33,8 +33,55 @@
       <div class="sidetool__title">快捷导航</div>
       <nav class="sidetool__nav">
         <a class="sidetool__link is-current" href="index.html" aria-current="page">选型主页</a>
+        <a class="sidetool__link" href="drawer.html">抽屉式选型</a>
         <a class="sidetool__link" href="second.html">型号解析</a>
       </nav>
+    </div>
+  </aside>
+
+  <!-- 右侧型号编码说明（固定在位，滚动时跟随屏幕） -->
+  <aside class="codelegend is-collapsed" id="codeLegend">
+    <button class="codelegend__toggle" id="codeLegendToggle" type="button" aria-label="展开型号说明" aria-expanded="false">
+      <span class="codelegend__chevron">›</span>
+    </button>
+    <div class="codelegend__body">
+      <div class="codelegend__title">型号编码说明</div>
+      <p class="codelegend__note">方框 □ 为可省略部分，字母 / 数字为必选部分</p>
+      <a class="codelegend__diagram" id="codeLegendDiagram" href="modelcode.html" title="点击查看完整编码图">
+        <div class="codelegend__model">
+          <span class="seg" data-seg="0" data-color="#2f7fd6" style="--c:#2f7fd6">AN</span><i>-</i>
+          <span class="seg" data-seg="1" data-color="#e0523c" style="--c:#e0523c">A0</span>
+          <span class="seg" data-seg="2" data-color="#2aa889" style="--c:#2aa889">AA</span><i>-</i>
+          <span class="seg seg--box" data-seg="3" data-color="#e8a33d" style="--c:#e8a33d"></span>
+          <span class="seg seg--box" data-seg="4" data-color="#7e57c2" style="--c:#7e57c2"></span>
+          <span class="seg seg--box" data-seg="5" data-color="#12a3b4" style="--c:#12a3b4"></span><i>-</i>
+          <span class="seg" data-seg="7" data-color="#8b5a2b" style="--c:#8b5a2b">02</span><i>-</i>
+          <span class="seg seg--box" data-seg="8" data-color="#5566c9" style="--c:#5566c9"></span>
+          <span class="seg seg--box" data-seg="9" data-color="#8a9a2b" style="--c:#8a9a2b"></span>
+        </div>
+        <dl class="codelegend__list">
+          <div class="row" data-seg="0" style="--c:#2f7fd6"><dt>品牌</dt><dd><b>AN</b> 艾奇诺</dd></div>
+          <div class="row" data-seg="1" style="--c:#e0523c"><dt>系列</dt><dd><b>A0</b> 系列型号（01-999、AB-YZ 等，数字前加横线、字母后加横线）</dd></div>
+          <div class="row" data-seg="2" style="--c:#2aa889"><dt>沟槽类型</dt><dd><b>AA</b> G/H/E/BD 圆缸，BD 必配 BDQ 固定件</dd></div>
+          <div class="row" data-seg="3" style="--c:#e8a33d"><dt>输出方式</dt><dd>空白:两线电子式，N:三线式NPN，P:三线式 PNP，S=自动识别 N/P</dd></div>
+          <div class="row" data-seg="4" style="--c:#7e57c2"><dt>开关逻辑</dt><dd><b>空白:</b>常开NO</dd></div>
+          <div class="row" data-seg="5" style="--c:#12a3b4"><dt>灵敏度</dt><dd><b>空白:</b>开关型号设定灵敏度,<b>D:</b>低感应灵敏度</dd></div>
+          <div class="row" data-seg="6" style="--c:#8b5a2b"><dt>固定装置</dt><dd><b>02</b> P=拉杆夹具（P6 适配 Ø4.2~Ø6），QA(S)=圆缸绑带</dd></div>
+          <div class="row" data-seg="7" style="--c:#5566c9"><dt>出线类型</dt><dd>空白=常规出线不带接头，M12QD(SC)/(SE)=两线公头，M12QD(3C)=三线公头</dd></div>
+          <div class="row" data-seg="8" style="--c:#8a9a2b"><dt>电线长度</dt><dd>0.3 / 0.5 为带 QD 接头的线长，02=2 米，其余依次推理</dd></div>
+        </dl>
+      </a>
+      <div class="codelegend__sub">M12 接头接线图</div>
+      <img class="codelegend__qdimg" src="Image/qd-3wire.png" alt="M12QD 三线式接头接线图" />
+      <table class="codelegend__table">
+        <thead><tr><th>型号</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+        <tbody>
+          <tr><td>M12QD(SC)</td><td>–</td><td>–</td><td>OUT(±)</td><td>OUT(±)</td></tr>
+          <tr><td>M12QD(SE)</td><td>OUT(±)</td><td>–</td><td>–</td><td>OUT(±)</td></tr>
+          <tr><td>M12QD(3C)</td><td>VCC</td><td>–</td><td>GND</td><td>OUT</td></tr>
+        </tbody>
+      </table>
+      <a class="codelegend__more" href="modelcode.html">查看完整编码图 →</a>
     </div>
   </aside>
 
@@ -62,6 +109,9 @@
       <ol class="steps__track" id="stepTrack"></ol>
     </nav>
 
+    <!-- 抽屉式选型入口 -->
+    <p class="alt-entry"><a href="drawer.html">也可以试试「抽屉式选型」→ 逐层展开、一步步挑选</a></p>
+
     <!-- 已选参数标签 -->
     <section class="picked" id="pickedBar" aria-label="已选参数"></section>
 
@@ -70,7 +120,7 @@
       <div class="card__badge" id="stepBadge">01</div>
       <div class="card__head">
         <h2 id="stepTitle">选择气缸系列</h2>
-        <p id="stepDesc">请选择需要的气缸系列，不同系列对应不同的缸径范围与开关型号。</p>
+        <p id="stepDesc">B02-ACQ、B02-TCM、B07-TCM全系列统一配置带“D”<br />QCK、MCK、B02-JSI、AQK全系列统一配置不带“D”</p>
       </div>
       <!-- 系列搜索框 -->
       <div class="series-search hidden" id="seriesSearch">
@@ -145,6 +195,8 @@
       sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
       sidetoolToggle.setAttribute("aria-label", collapsed ? "展开工具栏" : "收起工具栏");
     });
+
   </script>
+  <script src="legend.js"></script>
 </body>
 </html>

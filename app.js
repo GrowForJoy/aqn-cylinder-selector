@@ -85,17 +85,8 @@
   };
 
   const SERIES_DESC = {
-    TCM: "三轴气缸B07", TCL: "三轴气缸B07", QCK: "回转夹紧气缸B02",
-    "ACQ/SDA": "薄壁气缸B02", MCK: "焊接夹紧气缸", AQK: "销钉气缸", BAQK: "抱紧型销钉气缸",
-    HLQ: "双轴滑台气缸/气动手指", HLS: "双轴滑台气缸",
-    JSI: "标准气缸", SAI: "标准气缸", "BE/BSE": "标准气缸",
-    SC: "拉杆气缸", BSC: "拉杆气缸", SCJ: "拉杆气缸",
-    BP: "笔型气缸", TN: "双轴气缸", TR: "双轴气缸",
-  };
-
-  /* 系列按钮显示名（可选，未配置时用系列名本身） */
-  const SERIES_LABEL = {
-    HLQ: "HLQ/HF",
+    "B02-ACQ": "薄壁气缸", "B02-TCM/B07-TCM": "三轴气缸", QCK: "回转夹紧气缸",
+    MCK: "焊接夹紧气缸", "B02-JSI": "标准气缸", AQK: "销钉气缸",
   };
 
   const stepOptions = (key) => {
@@ -103,7 +94,7 @@
       case "series":
         return GROUPS.reduce((acc, g) => {
           g.series.forEach((snm) => acc.push({
-            value: snm, label: SERIES_LABEL[snm] || snm, sub: SERIES_DESC[snm] || "标准气缸", group: g,
+            value: snm, label: snm, sub: SERIES_DESC[snm] || "标准气缸", group: g,
           }));
           return acc;
         }, []);
@@ -173,7 +164,7 @@
       case "signal":     return val === "auto" ? "自动识别" : val.toUpperCase();
       case "wireMethod": return val === "direct" ? "直接出线"
         : (val === "M12QD-SE" ? "M12QD(SE)" : val === "M12QD-SC" ? "M12QD(SC)" : val);
-      case "series":     return SERIES_LABEL[val] || val;
+      case "series":     return val;
       case "stroke":     return val === "gte15" ? "大于等于15" : "小于15";
       default:           return val;
     }
@@ -207,17 +198,20 @@
         : (pool.two && pool.two[0]);
       if (!model) return "";
       if (value === "old") {
-        const hasD = /-(D2?)$/.test(model);
-        const m = model.replace(/-(D2?)$/, "").replace(/-[SNP]$/, "").replace(/(\d)(S|N|P)$/, "$1");
         const map = {
           "AN-101": "Image/101G.jpg",
           "AN-102": "Image/102G.jpg",
           "AN-105": "Image/105G.jpg",
         };
-        if (!map[m]) return "";
-        // 102 带 D / D2（AN-102-D / AN-102-D2）显示带 D 的专属效果图
-        if (hasD && m === "AN-102") return "Image/102G-D.jpg";
-        return map[m];
+        // 同组可能有多个开关型号，取第一个有对应效果图的
+        for (const md of (pool[vk] || pool.two || [])) {
+          const hasD = /-(D2?)$/.test(md);
+          const m = md.replace(/-(D2?)$/, "").replace(/-[SNP]$/, "").replace(/(\d)(S|N|P)$/, "$1");
+          if (!map[m]) continue;
+          // 102 带 D / D2（AN-102-D / AN-102-D2）显示带 D 的专属效果图
+          return hasD && m === "AN-102" ? "Image/102G-D.jpg" : map[m];
+        }
+        return "";
       }
       // 三线信号后缀(S/N/P)不区分图片；保留 -D/-D2 归一到 D：AN-A6G-S → AN-A6G；AN-A6G-S-D2 → AN-A6G-D
       let base = model.replace(/-(S|N|P)(?:-D2?)?$/, (m) => (m.includes("-D") ? "-D" : ""));
@@ -267,7 +261,7 @@
 
   const stepMeta = (key) => {
     const meta = {
-      series:     ["01", "选择气缸系列", "请选择需要的气缸系列，不同系列对应不同的缸径范围与开关型号。"],
+      series:     ["01", "选择气缸系列", "B02-ACQ、B02-TCM、B07-TCM全系列统一配置带“D”\nQCK、MCK、B02-JSI、AQK全系列统一配置不带“D”"],
       bore:       ["02", "选择缸径", `当前缸径范围为 ${state.group ? state.group.boreMin : "-"} ~ ${state.group ? state.group.boreMax : "-"} mm，请选择实际需要的内径规格。`],
       wiring:     ["03", "选择接线方式", "接线方式分为两线式和三线式，三线式需进一步选择信号类型（自动识别 / NPN / PNP）。"],
       signal:     ["04", "选择信号类型", "三线式输出需确认选择那种类型，自动识别 S 型、 NPN 与 PNP。"],
@@ -282,9 +276,8 @@
     return meta[key] || ["--", key, ""];
   };
 
-  /* ---------- 动态步骤 ---------- */
-  /* 需要“真实行程”步骤的系列（选 <15mm 时型号由 -D 变为 -D2） */
-  const STROKE_SERIES = ["ACQ/SDA", "TCM", "TCL"];
+
+  const STROKE_SERIES = ["B02-ACQ", "B02-TCM/B07-TCM"];
   const strokeEnabled = () =>
     !!state.seriesName && STROKE_SERIES.includes(state.seriesName) && !!state.generation;
 
@@ -375,7 +368,6 @@
     pickedBar.classList.toggle("hidden", !items.length);
   }
 
-  // 关闭结果区并恢复选型区，保证两者互斥，避免整页空白
   const closeResult = () => {
     resultPanel.hidden = true;
     selectorWrap.hidden = false;
@@ -409,7 +401,7 @@
     if (key === "accessory" && accessoryOptions().required) {
       stepDesc.textContent = "该系列需配套安装附件，请选择相应型号。";
     } else {
-      stepDesc.textContent = stepMeta(key)[2];
+      stepDesc.innerHTML = stepMeta(key)[2].replace(/\n/g, "<br>");
     }
 
     optionsArea.innerHTML = "";
@@ -462,8 +454,7 @@
         wirePreviewImg.innerHTML = '<div class="wire-preview__ph">请选择后查看效果图</div>';
         wirePreviewName.innerHTML = "&nbsp;";
       }
-      // 下一步按钮（wireMethod 步骤一定有；metal 一律显示「下一步」确认，
-      // generation 若后面还有步骤则显示）
+  
       const steps = buildSteps();
       const idxCur = steps.indexOf(key);
       const hasNext = key === "metal" || (idxCur >= 0 && idxCur < steps.length - 1);
@@ -633,7 +624,7 @@
   function buildResult() {
     const cands = candidateModels();
     const base0 = cands && cands.length ? cands[0] : null;
-    // 真实行程 <15mm 时，型号末尾 -D 变为 -D2；≥15mm 保持 -D（仅 ACQ/SDA、TCM、TCL 生效）
+    // 真实行程 <15mm 时，型号末尾 -D 变为 -D2；≥15mm 保持 -D（仅 B02-ACQ、B02-TCM/B07-TCM 生效）
     const applyStroke = (code) => {
       if (!strokeEnabled() || state.stroke !== "lt15" || !code) return code;
       return code.replace(/-(D2?)$/, "-D2");
@@ -719,12 +710,16 @@
     (typeof MODELS_3D !== "undefined" ? MODELS_3D : []).find((m) => m.base === base) || null;
 
   function render3D(switchModel) {
-    const base = switchBase(switchModel);
     const acc = state.accessory;
     const accSuffix = acc && acc !== "无（仅开关）" ? `-${acc}` : "";
+    // 同组可能有多个可选型号，依次找有数模的那一个
+    const list = [switchModel, ...(candidateModels() || [])].filter(Boolean);
     let m = null;
-    if (accSuffix) m = find3D(switchModel + accSuffix);
-    if (!m && base) m = find3D(base);
+    for (const sm of list) {
+      if (accSuffix) m = find3D(sm + accSuffix);
+      if (!m) m = find3D(switchBase(sm));
+      if (m) break;
+    }
     if (m && previewMv) {
       result3dEmpty.hidden = true;
       result3dLink.hidden = false;

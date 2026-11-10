@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>型号编码说明 | 艾奇诺</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain"></div>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <img src="AN.png" alt="艾奇诺" />
+        </div>
+        <div class="brand__text">
+          <h1>型号编码说明</h1>
+          <p>Model Code Reference</p>
+        </div>
+      </div>
+      <div class="docno">
+        <a href="index.html">← 返回选型</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mc-page">
+    <div class="mc-stage" id="mcStage">
+      <div class="mc-title">强磁开关选型 · 简版</div>
+      <div class="mc-note">
+        注释：1.（□）方框为可省略部分；<br />
+        2.（A）字母 / 数字 / 数字字母组合为必选部分；
+      </div>
+
+      <!-- 型号串 -->
+      <div class="mc-code">
+        <span class="seg" data-seg="an" data-color="#2f7fd6" style="--c:#2f7fd6">AN</span><i>-</i>
+        <span class="seg" data-seg="series" data-color="#e0523c" style="--c:#e0523c">A0</span>
+        <span class="seg" data-seg="mount" data-color="#2aa889" style="--c:#2aa889">AA</span><i>-</i>
+        <span class="seg seg--box" data-seg="slot" data-color="#e8a33d" style="--c:#e8a33d"></span>
+        <span class="seg seg--box" data-seg="out" data-color="#7e57c2" style="--c:#7e57c2"></span>
+        <span class="seg seg--box" data-seg="logic" data-color="#12a3b4" style="--c:#12a3b4"></span><i>-</i>
+        <span class="seg" data-seg="fix" data-color="#8b5a2b" style="--c:#8b5a2b">02</span><i>-</i>
+        <span class="seg seg--box" data-seg="wire" data-color="#5566c9" style="--c:#5566c9"></span>
+        <span class="seg seg--box" data-seg="len" data-color="#8a9a2b" style="--c:#8a9a2b"></span>
+      </div>
+
+      <svg class="mc-wires" id="mcWires" aria-hidden="true"></svg>
+
+      <!-- 左列 -->
+      <div class="mc-col mc-col--left">
+        <div class="mc-card" data-wire data-seg="an" data-side="left" style="--c:#2f7fd6">
+          <h3>艾奇诺</h3>
+          <span>品牌代号 <b>AN</b></span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="series" data-side="left" style="--c:#e0523c">
+          <h3>系列型号</h3>
+          <span><b>01-999、AB-YZ、A0</b>：系列型号</span>
+          <span>数字前加横线，字母后加横线，数字字母组合前后都加横线</span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="mount" data-side="left" style="--c:#2aa889">
+          <h3>沟槽类型（第 1 个 □）</h3>
+          <span><b>AA</b>：代表安装方式
+            <b class="mc-mnt">G<img src="G.png" alt="G 型" /></b> /
+            <b class="mc-mnt">H<img src="H.png" alt="H 型" /></b> /
+            <b class="mc-mnt">E<img src="E.png" alt="E 型" /></b> /
+            BD 圆缸</span>
+          <span>注：BD 必须选 BDQ 配件（固定装置）</span>
+          <span>沟槽类型为 A0 系列选项，其他不选</span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="slot" data-side="left" style="--c:#e8a33d">
+          <h3>输出方式（第 2 个 □）</h3>
+          <span>空白：两线电子式（默认不写字母）</span>
+          <span>N：三线式 NPN 输出　P：三线式 PNP 输出　S：三线式自动识别 NPN/PNP</span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="out" data-side="left" style="--c:#7e57c2">
+          <h3>开关逻辑（第 3 个 □）</h3>
+          <span>空白：常开型 NO（常用开关逻辑）</span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="logic" data-side="left" style="--c:#12a3b4">
+          <h3>灵敏度</h3>
+          <span>空白：开关型号设定灵敏度</span>
+          <span>D：低感应灵敏度(比常规更低)</span>
+        </div>
+      </div>
+
+      <!-- 右列 -->
+      <div class="mc-col mc-col--right">
+        <div class="mc-card" data-wire data-seg="fix" data-side="right" style="--c:#8b5a2b">
+          <h3>固定装置</h3>
+          <span><b>P</b>：为拉杆夹具（参考 P 选型表），例如 P6 适配拉杆直径 Ø4.2~Ø6</span>
+          <span><b>QA(S)</b>：为圆缸绑带（参考 QA(S) 选型表）</span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="wire" data-side="right" style="--c:#5566c9">
+          <h3>出线类型</h3>
+          <span>空白：常规出线，不带接头</span>
+          <span>M12QD(SC) / M12QD(SE)：两线 M12 快速接头-公头</span>
+          <span>M12QD(3C)：三线 M12 快速接头-公头</span>
+        </div>
+
+        <div class="mc-card" data-wire data-seg="len" data-side="right" style="--c:#8a9a2b">
+          <h3>电线长度</h3>
+          <span>0.3：电线长度 0.3M（带 QD 接头）　0.5：0.5M（带 QD 接头）</span>
+          <span>02：电线长度为 2 米，其他依次推理</span>
+        </div>
+
+        <div class="mc-card mc-m12" style="--c:#4a90d9">
+          <h3>M12 接头接线图</h3>
+          <div class="mc-m12__body">
+            <img class="mc-m12__img" src="Image/qd-3wire.png" alt="M12QD 三线式接头接线图" />
+            <table class="mc-table">
+              <thead><tr><th>型号</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+              <tbody>
+                <tr><td>M12QD(SC)</td><td>–</td><td>–</td><td>OUT(±)</td><td>OUT(±)</td></tr>
+                <tr><td>M12QD(SE)</td><td>OUT(±)</td><td>–</td><td>–</td><td>OUT(±)</td></tr>
+                <tr><td>M12QD(3C)</td><td>VCC</td><td>–</td><td>GND</td><td>OUT</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* 彩色引线：左列走中缝左侧通道，右列走中缝右侧通道，互不交叉 */
+    (function () {
+      var stage = document.getElementById("mcStage");
+      var svg = document.getElementById("mcWires");
+      if (!stage || !svg) return;
+
+      var LEFT_X = 500;   // 左列通道起点
+      var RIGHT_X = 646;  // 右列通道起点
+      var STEP = 7;       // 相邻通道间距
+      var LANE = 6;       // 相邻水平通道间距
+
+      function draw() {
+        var box = stage.getBoundingClientRect();
+        var codeBottom = stage.querySelector(".mc-code").getBoundingClientRect().bottom - box.top;
+
+        // 一张卡可接多条线（data-seg + data-seg-extra）
+        var wires = [];
+        [].slice.call(stage.querySelectorAll("[data-wire]")).forEach(function (t) {
+          var side = t.dataset.side || "left";
+          wires.push({ el: t, seg: t.dataset.seg, side: side, oy: 0 });
+          if (t.dataset.segExtra) wires.push({ el: t, seg: t.dataset.segExtra, side: side, oy: 22 });
+        });
+        var lefts = wires.filter(function (w) { return w.side !== "right"; });
+        var rights = wires.filter(function (w) { return w.side === "right"; });
+        var out = "";
+
+        function path(w, railX, laneY) {
+          var seg = stage.querySelector('.mc-code .seg[data-seg="' + w.seg + '"]');
+          if (!seg) return;
+          var s = seg.getBoundingClientRect();
+          var r = w.el.getBoundingClientRect();
+          var ax = s.left - box.left + s.width / 2;
+          var ay = s.bottom - box.top;
+          var y2 = r.top - box.top + r.height / 2 + w.oy;
+          var endX = (w.side === "right" ? r.left : r.right) - box.left;
+          var d = "M" + ax + "," + ay + " V" + laneY + " H" + railX + " V" + y2 + " H" + endX;
+          var c = seg.dataset.color;
+          out += '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="1.8" ' +
+                 'stroke-linecap="round" stroke-linejoin="round"/>' +
+                 '<circle cx="' + ax + '" cy="' + ay + '" r="2.8" fill="' + c + '"/>' +
+                 '<circle cx="' + endX + '" cy="' + y2 + '" r="2.8" fill="' + c + '"/>';
+        }
+
+        // 左列：自上而下依次占通道
+        lefts.forEach(function (w, k) {
+          path(w, LEFT_X + k * STEP, codeBottom + 10 + k * LANE);
+        });
+
+        // 右列：型号串末尾的段走最上层，通道反向排布，避免与外层竖线交叉
+        rights.forEach(function (w, k) {
+          var lane = codeBottom + 10 + (lefts.length + rights.length - 1 - k) * LANE;
+          path(w, RIGHT_X + (rights.length - 1 - k) * STEP, lane);
+        });
+
+        svg.setAttribute("viewBox", "0 0 " + box.width + " " + box.height);
+        svg.innerHTML = out;
+      }
+
+      /* 画布高度按最低的卡片收缩 */
+      function fit() {
+        var top = stage.getBoundingClientRect().top;
+        var bottom = 0;
+        var cards = stage.querySelectorAll(".mc-card");
+        for (var i = 0; i < cards.length; i++) {
+          bottom = Math.max(bottom, cards[i].getBoundingClientRect().bottom - top);
+        }
+        var need = Math.round(bottom + 34);
+        if (Math.abs(need - stage.offsetHeight) > 1) stage.style.height = need + "px";
+      }
+
+      function render() { fit(); draw(); }
+      render();
+      window.addEventListener("load", render);   // 图片加载后重新量取
+      window.addEventListener("resize", render);
+      if (window.ResizeObserver) new ResizeObserver(render).observe(stage);
+    })();
+  </script>
+</body>
+</html>

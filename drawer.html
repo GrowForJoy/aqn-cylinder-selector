@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>抽屉式选型 - 艾奇诺抗强磁开关对标亚德客选型助手</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <!-- 百度统计 -->
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?dbb36b8a2dc167136b87fd184b251e96";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <!-- 左侧可收起工具栏 -->
+  <aside class="sidetool is-collapsed" id="sidetool">
+    <button class="sidetool__toggle" id="sidetoolToggle" type="button" aria-label="展开工具栏" aria-expanded="false">
+      <span class="sidetool__chevron">‹</span>
+    </button>
+    <div class="sidetool__body">
+      <div class="sidetool__title">快捷导航</div>
+      <nav class="sidetool__nav">
+        <a class="sidetool__link" href="index.html">选型主页</a>
+        <a class="sidetool__link is-current" href="drawer.html" aria-current="page">抽屉式选型</a>
+        <a class="sidetool__link" href="second.html">型号解析</a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- 右侧型号编码说明（固定在位，滚动时跟随屏幕） -->
+  <aside class="codelegend is-collapsed" id="codeLegend">
+    <button class="codelegend__toggle" id="codeLegendToggle" type="button" aria-label="展开型号说明" aria-expanded="false">
+      <span class="codelegend__chevron">›</span>
+    </button>
+    <div class="codelegend__body">
+      <div class="codelegend__title">型号编码说明</div>
+      <p class="codelegend__note">方框 □ 为可省略部分，字母 / 数字为必选部分</p>
+      <a class="codelegend__diagram" id="codeLegendDiagram" href="modelcode.html" title="点击查看完整编码图">
+        <div class="codelegend__model">
+          <span class="seg" data-seg="0" data-color="#2f7fd6" style="--c:#2f7fd6">AN</span><i>-</i>
+          <span class="seg" data-seg="1" data-color="#e0523c" style="--c:#e0523c">A0</span>
+          <span class="seg" data-seg="2" data-color="#2aa889" style="--c:#2aa889">AA</span><i>-</i>
+          <span class="seg seg--box" data-seg="3" data-color="#e8a33d" style="--c:#e8a33d"></span>
+          <span class="seg seg--box" data-seg="4" data-color="#7e57c2" style="--c:#7e57c2"></span>
+          <span class="seg seg--box" data-seg="5" data-color="#12a3b4" style="--c:#12a3b4"></span><i>-</i>
+          <span class="seg" data-seg="7" data-color="#8b5a2b" style="--c:#8b5a2b">02</span><i>-</i>
+          <span class="seg seg--box" data-seg="8" data-color="#5566c9" style="--c:#5566c9"></span>
+          <span class="seg seg--box" data-seg="9" data-color="#8a9a2b" style="--c:#8a9a2b"></span>
+        </div>
+        <dl class="codelegend__list">
+          <div class="row" data-seg="0" style="--c:#2f7fd6"><dt>品牌</dt><dd><b>AN</b> 艾奇诺</dd></div>
+          <div class="row" data-seg="1" style="--c:#e0523c"><dt>系列</dt><dd><b>A0</b> 系列型号（01-999、AB-YZ 等，数字前加横线、字母后加横线）</dd></div>
+          <div class="row" data-seg="2" style="--c:#2aa889"><dt>安装方式</dt><dd><b>AA</b> G□ / HO / E□ / BD 圆缸，BD 必配 BDQ 固定件</dd></div>
+          <div class="row" data-seg="3" style="--c:#e8a33d"><dt>沟槽类型</dt><dd>第 1 个 □，仅 A0 系列选用，其他不选</dd></div>
+          <div class="row" data-seg="4" style="--c:#7e57c2"><dt>输出方式</dt><dd>第 2 个 □：空白=两线电子式，N=NPN，P=PNP，S=自动识别 N/P</dd></div>
+          <div class="row" data-seg="5" style="--c:#12a3b4"><dt>开关逻辑</dt><dd>第 3 个 □：空白=常开 NO</dd></div>
+          <div class="row" data-seg="6" style="--c:#d84f8c"><dt>灵敏度</dt><dd><b>D</b>=低感应灵敏度，空白=常规设定</dd></div>
+          <div class="row" data-seg="7" style="--c:#8b5a2b"><dt>固定装置</dt><dd><b>02</b> P=拉杆夹具（P6 适配 Ø4.2~Ø6），QA(S)=圆缸绑带</dd></div>
+          <div class="row" data-seg="8" style="--c:#5566c9"><dt>出线类型</dt><dd>空白=常规出线不带接头，M12QD(SC)/(SE)=两线公头，M12QD(3C)=三线公头</dd></div>
+          <div class="row" data-seg="9" style="--c:#8a9a2b"><dt>电线长度</dt><dd>0.3 / 0.5 为带 QD 接头的线长，02=2 米，其余依次推理</dd></div>
+        </dl>
+      </a>
+      <div class="codelegend__sub">M12 接头接线图</div>
+      <img class="codelegend__qdimg" src="Image/qd-3wire.png" alt="M12QD 三线式接头接线图" />
+      <table class="codelegend__table">
+        <thead><tr><th>型号</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+        <tbody>
+          <tr><td>M12QD(SC)</td><td>–</td><td>–</td><td>OUT(±)</td><td>OUT(±)</td></tr>
+          <tr><td>M12QD(SE)</td><td>OUT(±)</td><td>–</td><td>–</td><td>OUT(±)</td></tr>
+          <tr><td>M12QD(3C)</td><td>VCC</td><td>–</td><td>GND</td><td>OUT</td></tr>
+        </tbody>
+      </table>
+      <a class="codelegend__more" href="modelcode.html">查看完整编码图 →</a>
+    </div>
+  </aside>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">
+          <img src="AN.png" alt="艾奇诺" />
+        </div>
+        <div class="brand__text">
+          <h1>艾奇诺抗强磁开关对标亚德客焊接缸选型</h1>
+          <p>Cylinder Switch Model Selector · 抽屉式</p>
+        </div>
+      </div>
+      <div class="docno" aria-hidden="true">
+        <span>SPEC-SELECTOR</span><i>/</i><span>AN-102/A6</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="selector" id="selectorWrap">
+      <!-- 已选参数标签 -->
+      <section class="picked" id="pickedBar" aria-label="已选参数"></section>
+
+      <!-- 抽屉式选型：每个步骤一个可展开抽屉 -->
+      <div class="drawers" id="drawerStack"></div>
+    </div>
+
+    <!-- 结果面板 -->
+    <section class="result" id="resultPanel" hidden>
+      <div class="result__head">
+        <span class="result__title">选型结果</span>
+        <span class="result__legend">RESULT</span>
+      </div>
+      <div class="result__model" id="modelOutput">—</div>
+      <dl class="result__grid" id="resultGrid"></dl>
+      <div class="customer-select" id="customerSelect" hidden></div>
+      <a class="result3d" id="result3dLink" href="3d-viewer.html" target="_blank" rel="noopener" hidden>
+        <div class="result3d__stage">
+          <model-viewer id="previewMv" src="" auto-rotate rotation-per-second="25deg" environment-image="neutral" shadow-intensity="1" exposure="0.95" interaction-prompt="none" reveal="auto" style="background: transparent"></model-viewer>
+          <span class="result3d__overlay" aria-hidden="true"></span>
+          <span class="result3d__hint">点击查看 →</span>
+        </div>
+        <div class="result3d__text">
+          <span class="result3d__title">三维数模</span>
+          <span class="result3d__sub">点击进入可旋转 / 缩放查看</span>
+        </div>
+      </a>
+      <div class="result3d--empty" id="result3dEmpty" hidden>三维数模即将上线</div>
+      <div class="result__actions">
+        <button class="btn btn--primary" id="btnCopy" type="button">复制完整型号</button>
+        <a class="btn btn--download" id="result3dDl" href="#" download hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          3D数模下载
+        </a>
+        <button class="btn btn--ghost" id="btnRestart" type="button">重新选型</button>
+        <button class="btn btn--ghost" id="btnStepBack" type="button">上一步</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 图片放大灯箱 -->
+  <div class="lightbox hidden" id="lightbox" aria-hidden="true">
+    <button class="lightbox__close" id="lightboxClose" type="button" aria-label="关闭">×</button>
+    <img class="lightbox__img" id="lightboxImg" alt="放大图" />
+  </div>
+
+  <script src="data.js"></script>
+  <script src="models3d.js"></script>
+  <script src="selector-core.js"></script>
+  <script src="drawer.js"></script>
+  <script>
+    /* 左侧工具栏收起/展开 */
+    var sidetool = document.getElementById("sidetool");
+    var sidetoolToggle = document.getElementById("sidetoolToggle");
+    sidetoolToggle.addEventListener("click", function () {
+      var collapsed = sidetool.classList.toggle("is-collapsed");
+      sidetoolToggle.setAttribute("aria-expanded", String(!collapsed));
+      sidetoolToggle.setAttribute("aria-label", collapsed ? "展开工具栏" : "收起工具栏");
+    });
+
+  </script>
+  <script src="legend.js"></script>
+</body>
+</html>
