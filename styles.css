@@ -936,11 +936,31 @@ body {
   border-top: 1px solid var(--line);
   animation: rise .25s ease;
 }
+/* 步骤提示文案（提示色） */
+.card__head p.step-hint,
 .drawer__desc {
   margin: 0 0 14px;
-  font-size: .82rem;
-  line-height: 1.5;
-  color: var(--ink-dim);
+  padding: 7px 12px;
+  border-left: 3px solid var(--amber);
+  border-radius: 4px 8px 8px 4px;
+  background: rgba(244,166,60,.10);
+  color: #8a5a12;
+  font-size: .84rem;
+  line-height: 1.6;
+}
+.card__head p.step-hint { margin-bottom: 0; }
+.card__head p.step-hint::before,
+.drawer__desc::before {
+  content: "提示";
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--amber);
+  color: #fff;
+  font-size: .66rem;
+  font-weight: 700;
+  vertical-align: 1px;
 }
 @media (max-width: 620px) {
   .drawer__head { padding: 13px 14px; gap: 9px; }
