@@ -1,9 +1,9 @@
 // 标准缸径规格（可出现的所有缸径值）
 const BORE_STANDARD = [10, 12, 16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 140];
 const GROUPS = [
-  /* B02-ACQ：薄壁气缸 */
+  /* B02-ACQ/SDA：薄壁气缸 */
   {
-    series: ["B02-ACQ"],
+    series: ["B02-ACQ/SDA"],
     boreMin: 32, boreMax: 100,
     old: {
       two:   ["AN-103-D", "AN-102-D"],

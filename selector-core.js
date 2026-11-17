@@ -8,7 +8,7 @@
 
   /* ---------- 常量 ---------- */
   const SERIES_DESC = {
-    "B02-ACQ": "薄壁气缸", "B02-TCM/B07-TCM": "三轴气缸", QCK: "回转夹紧气缸",
+    "B02-ACQ/SDA": "薄壁气缸", "B02-TCM/B07-TCM": "三轴气缸", QCK: "回转夹紧气缸",
     MCK: "焊接夹紧气缸", "B02-JSI": "标准气缸", AQK: "销钉气缸",
     TCL: "三轴气缸", HLQ: "双轴滑台气缸/气动手指", HLS: "双轴滑台气缸",
     SAI: "标准气缸", "BE/BSE": "标准气缸",
@@ -131,7 +131,7 @@
   /* 步骤标题与提示文案 */
   const stepMeta = (key, state) => {
     const meta = {
-      series: ["01", "选择气缸系列", "B02-ACQ、B02-TCM、B07-TCM 全系列统一配置带“D”\nQCK、MCK、B02-JSI、AQK 全系列统一配置不带“D”"],
+      series: ["01", "选择气缸系列", "B02-ACQ/SDA、B02-TCM、B07-TCM 全系列统一配置带“D”\nQCK、MCK、B02-JSI、AQK 全系列统一配置不带“D”"],
       bore: ["02", "选择缸径", `该系列缸径范围为 ${state.group ? state.group.boreMin : "-"} ~ ${state.group ? state.group.boreMax : "-"} mm，请按气缸实际内径选择。`],
       wiring: ["03", "选择接线方式", "两线式：电子式开关；三线式：需再选择 NPN / PNP / 自动识别（S）。"],
       signal: ["04", "选择三线式类型", "NPN：无接点晶体管 NPN 输出；PNP：无接点晶体管 PNP 输出；自动识别：可自动识别 NPN / PNP。"],

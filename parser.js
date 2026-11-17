@@ -19,7 +19,7 @@
   baseRegistry.sort((a, b) => b.model.length - a.model.length);
 
   const SERIES_DESC = {
-    "B02-ACQ": "薄壁气缸", "B02-TCM/B07-TCM": "三轴气缸", QCK: "回转夹紧气缸",
+    "B02-ACQ/SDA": "薄壁气缸", "B02-TCM/B07-TCM": "三轴气缸", QCK: "回转夹紧气缸",
     MCK: "焊接夹紧气缸", "B02-JSI": "标准气缸", AQK: "销钉气缸",
     TCL: "三轴气缸", HLQ: "双轴滑台气缸/气动手指", HLS: "双轴滑台气缸",
     SAI: "标准气缸", "BE/BSE": "标准气缸",
